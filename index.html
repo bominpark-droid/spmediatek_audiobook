@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP미디어텍</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+// 페이지 로드 즉시 실행 — 깜빡임 & 보안 버그 방지
+(function(){
+  const p = new URLSearchParams(location.search);
+  const mode = p.get('mode');
+  if (mode === 'publisher' || mode === 'engineer') {
+    // 모드 선택 화면 즉시 숨기는 스타일 주입
+    document.write('<style id="pre-hide">#mode-screen{display:none!important}</style>');
+  }
+})();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:#0d0d0d;color:#e8e6df;min-height:100vh}
+
+/* 모드 선택 */
+.mode-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;gap:32px}
+.logo-area{text-align:center}
+.logo-area h1{font-size:22px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px}
+.logo-area p{font-size:13px;color:#666}
+.mode-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:560px}
+.mode-card{background:#161616;border:0.5px solid #2a2a2a;border-radius:16px;padding:28px 16px;text-align:center;cursor:pointer;transition:all 0.2s}
+.mode-card:hover{border-color:#555;background:#1c1c1c;transform:translateY(-3px)}
+.mode-card .icon{font-size:32px;margin-bottom:12px}
+.mode-card .title{font-size:14px;font-weight:700;margin-bottom:6px}
+.mode-card .desc{font-size:11px;color:#666;line-height:1.6}
+
+/* 앱 공통 */
+.app{display:none;flex-direction:column;min-height:100vh}
+.app.active{display:flex}
+.topbar{background:#111;border-bottom:0.5px solid #1e1e1e;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-brand{font-size:13px;font-weight:700}
+.topbar-sub{font-size:11px;color:#555;padding:3px 8px;background:#1a1a1a;border-radius:20px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.tbtn{font-size:11px;padding:5px 12px;border-radius:6px;border:0.5px solid #2a2a2a;background:#161616;color:#888;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s}
+.tbtn:hover{border-color:#444;color:#ccc}
+.tbtn.primary{background:#e8e6df;color:#111;border-color:#e8e6df;font-weight:700}
+.content{flex:1;padding:20px;max-width:1000px;margin:0 auto;width:100%}
+
+/* 요약 */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.scard{background:#161616;border:0.5px solid #1e1e1e;border-radius:12px;padding:16px}
+.scard .lbl{font-size:11px;color:#555;margin-bottom:8px}
+.scard .val{font-size:26px;font-weight:700;line-height:1}
+.scard .val-sub{font-size:11px;color:#555;margin-top:4px}
+.v-default{color:#e8e6df}.v-red{color:#f87171}.v-amber{color:#fbbf24}.v-green{color:#4ade80}
+
+/* 필터 */
+.filter-bar{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.filter-bar .lbl{font-size:12px;color:#555;margin-right:4px}
+.fchip{font-size:12px;padding:5px 14px;border-radius:20px;border:0.5px solid #2a2a2a;background:#161616;color:#666;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s}
+.fchip:hover{border-color:#444;color:#aaa}
+.fchip.on{background:#e8e6df;color:#111;border-color:#e8e6df;font-weight:500}
+
+/* 프로젝트 카드 */
+.plist{display:flex;flex-direction:column;gap:8px}
+.pcard{background:#161616;border:0.5px solid #1e1e1e;border-radius:14px;overflow:hidden;transition:border-color 0.15s;cursor:pointer}
+.pcard:hover{border-color:#333}
+.pcard.urgent{border-left:3px solid #f87171}
+.pcard.warn{border-left:3px solid #fbbf24}
+.pcard.ok{border-left:3px solid #4ade80}
+.pcard.done-card{border-left:3px solid #3a3a3a;opacity:0.7}
+
+/* 카드 헤더 */
+.card-head{padding:14px 16px;display:flex;align-items:center;gap:12px}
+.card-head-left{flex:1;min-width:0}
+.card-title-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.pub-name{font-size:16px;font-weight:700;color:#fff}
+.book-name{font-size:14px;color:#e2e8f0;font-weight:400}
+.card-meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.stage-text{font-size:14px;color:#ccc;font-weight:600}
+.stage-summary{font-size:12px;color:#aaa;padding:2px 8px;background:#1e1e1e;border-radius:4px}
+.card-head-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+
+/* 진행 바 */
+.prog-wrap{padding:0 16px 14px;display:flex;align-items:center;gap:10px}
+.prog-bar{flex:1;height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#3B8BD4,#4ade80);transition:width 0.4s}
+.prog-pct{font-size:11px;color:#555;min-width:32px;text-align:right}
+
+/* 칩 */
+.chip{font-size:11px;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.chip-red{background:#2d1515;color:#f87171}
+.chip-amber{background:#2d2010;color:#fbbf24}
+.chip-green{background:#0f2d1a;color:#4ade80}
+.chip-blue{background:#0f1f2d;color:#60a5fa}
+.chip-purple{background:#1f1030;color:#c084fc}
+.chip-gray{background:#1e1e1e;color:#666}
+.dday-chip{font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px}
+
+/* 상세 펼침 */
+.card-detail{display:none;border-top:0.5px solid #1e1e1e;padding:16px}
+.card-detail.open{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.detail-section{background:#111;border-radius:10px;padding:14px}
+.detail-section.full{grid-column:1/-1}
+.ds-title{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ds-title .cnt{font-size:10px;padding:2px 7px;border-radius:20px}
+
+/* 체크리스트 */
+.check-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #1a1a1a;font-size:12px}
+.check-item:last-child{border-bottom:none}
+.check-item input{accent-color:#4ade80;width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.check-item .ci-text{flex:1;line-height:1.8;font-size:14px;color:#e2e8f0}
+.check-item .ci-text.done{text-decoration:line-through;color:#666}
+.ci-due{font-size:10px;padding:2px 7px;border-radius:6px;flex-shrink:0}
+
+/* 단계 버튼 */
+.step-grid{display:flex;gap:5px;flex-wrap:wrap}
+.sbtn{font-size:11px;padding:5px 10px;border-radius:6px;border:0.5px solid #2a2a2a;background:#1a1a1a;color:#666;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s}
+.sbtn:hover{border-color:#444;color:#aaa}
+.sbtn.s-done{background:#0f2d1a;color:#4ade80;border-color:#1a4a2a}
+.sbtn.s-ing{background:#0f1f2d;color:#60a5fa;border-color:#1a3a4a}
+
+/* 단계 타임라인 */
+.timeline{display:flex;flex-direction:column;gap:6px}
+.tl-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:12px}
+.tl-item.tl-done{background:#0f2d1a}
+.tl-item.tl-ing{background:#0f1f2d}
+.tl-item.tl-wait{background:#1a1a1a}
+.tl-num{font-size:11px;font-weight:700;width:20px;text-align:center;flex-shrink:0}
+.tl-name{flex:1;font-size:14px;color:#ddd}
+.tl-due{font-size:10px;color:#555}
+.tl-status{font-size:10px;padding:2px 7px;border-radius:6px;flex-shrink:0}
+.ts-done{background:#0f2d1a;color:#4ade80}
+.ts-ing{background:#0f1f2d;color:#60a5fa}
+.ts-wait{background:#1e1e1e;color:#555}
+
+/* 연락처 안내 */
+.contact-box{background:#111;border:0.5px solid #1e1e1e;border-radius:10px;padding:14px;margin-top:12px}
+.contact-box .ct-title{font-size:12px;font-weight:700;margin-bottom:10px;color:#aaa}
+.contact-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:0.5px solid #1a1a1a;font-size:12px}
+.contact-row:last-child{border-bottom:none}
+.ct-label{color:#555;min-width:80px;flex-shrink:0}
+.ct-val{color:#aaa;line-height:1.5}
+.link-btn{display:block;padding:10px 14px;border-radius:8px;background:#0f1f2d;color:#60a5fa;border:0.5px solid #1a3a4a;font-size:12px;font-weight:500;text-align:center;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-decoration:none;transition:all 0.15s;margin-top:8px}
+.link-btn:hover{background:#152a3d}
+.action-btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.abtn{font-size:11px;padding:6px 12px;border-radius:6px;border:0.5px solid #2a2a2a;background:#1a1a1a;color:#888;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s}
+.abtn:hover{border-color:#444;color:#ccc}
+
+/* 출판사/엔지니어 뷰 */
+.pub-hero{background:#161616;border:0.5px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center}
+.pub-hero h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.pub-hero .book{font-size:14px;color:#666;margin-bottom:16px}
+.stage-badge{display:inline-flex;align-items:center;gap:8px;background:#0f1f2d;color:#60a5fa;border:0.5px solid #1a3a4a;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500}
+.action-card{background:#161616;border:0.5px solid #1e1e1e;border-radius:14px;padding:16px;margin-bottom:12px}
+.ac-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.pub-project-select{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.psel-card{background:#161616;border:0.5px solid #1e1e1e;border-radius:12px;padding:14px 16px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:space-between}
+.psel-card:hover{border-color:#444}
+
+/* 알림 */
+.toast{position:fixed;bottom:24px;right:24px;background:#4ade80;color:#0d0d0d;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:700;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+.empty{text-align:center;padding:60px 20px;color:#444;font-size:13px}
+
+/* 상세설명 팝오버 */
+.detail-popup{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;padding:20px}
+.detail-popup.open{display:flex}
+.dp-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.7)}
+.dp-box{position:relative;background:#1a1a1a;border:0.5px solid #333;border-radius:16px;padding:24px;max-width:460px;width:100%;z-index:1;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.dp-tag{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.dp-title{font-size:17px;font-weight:700;margin-bottom:6px;line-height:1.4}
+.dp-how{font-size:12px;color:#60a5fa;background:#0f1f2d;border-radius:8px;padding:10px 12px;margin-bottom:12px}
+.dp-desc{font-size:13px;color:#aaa;line-height:1.8}
+.dp-close{position:absolute;top:16px;right:16px;background:#2a2a2a;border:none;color:#888;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-family:sans-serif}
+.dp-close:hover{background:#333;color:#fff}
+.info-btn{display:none} /* ⓘ 버튼 숨김 */
+.tl-name{cursor:pointer;transition:color 0.15s}
+.tl-name:hover{color:#60a5fa;text-decoration:underline dotted}
+.ci-text{cursor:pointer;transition:color 0.15s}
+.ci-text:hover{color:#60a5fa;text-decoration:underline dotted}
+</style>
+</head>
+<body>
+
+<div class="mode-screen" id="mode-screen">
+  <div class="logo-area">
+    <h1>SP미디어텍</h1>
+    <p>오디오북 제작 진행 현황</p>
+  </div>
+  <div class="mode-cards">
+    <div class="mode-card" onclick="enterInternal()">
+      <div class="icon">🏢</div>
+      <div class="title">내부 관리</div>
+      <div class="desc">전체 프로젝트 현황 관리</div>
+    </div>
+    <div class="mode-card" onclick="enterMode('publisher')">
+      <div class="icon">📚</div>
+      <div class="title">출판사</div>
+      <div class="desc">제작 현황 확인 및 자료 제출 안내</div>
+    </div>
+  </div>
+</div>
+
+<!-- 내부 관리 -->
+<div class="app" id="app-internal">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-brand">SP미디어텍</span>
+      <span class="topbar-sub">내부 관리</span>
+    </div>
+    <div class="topbar-right">
+      <button class="tbtn" onclick="loadData()">🔄 새로고침</button>
+      <button class="tbtn primary" onclick="goToSheet()">시트 열기</button>
+      <button class="tbtn" onclick="goBack()">← 모드 변경</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="summary-grid">
+      <div class="scard"><div class="lbl">전체 프로젝트</div><div class="val v-default" id="s-total">0</div><div class="val-sub" id="s-total-sub"></div></div>
+      <div class="scard"><div class="lbl">🔴 긴급 (D-5 이내)</div><div class="val v-red" id="s-urgent">0</div><div class="val-sub">즉시 확인 필요</div></div>
+      <div class="scard"><div class="lbl">🟡 출판사 미완료</div><div class="val v-amber" id="s-pub">0</div><div class="val-sub">출판사 액션 필요</div></div>
+      <div class="scard"><div class="lbl">✅ 완료</div><div class="val v-green" id="s-done">0</div><div class="val-sub">납품 완료</div></div>
+    </div>
+    <div class="filter-bar">
+      <span class="lbl">보기:</span>
+      <button class="fchip on" onclick="setFilter('all',this)">전체</button>
+      <button class="fchip" onclick="setFilter('urgent',this)">긴급</button>
+      <button class="fchip" onclick="setFilter('pub',this)">출판사 미완료</button>
+      <button class="fchip" onclick="setFilter('ing',this)">진행 중</button>
+      <button class="fchip" onclick="setFilter('done',this)">완료</button>
+    </div>
+    <div class="plist" id="internal-list"></div>
+  </div>
+</div>
+
+<!-- 출판사 화면 -->
+<div class="app" id="app-publisher">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-brand">SP미디어텍</span>
+      <span class="topbar-sub">제작 현황</span>
+    </div>
+    <div class="topbar-right"></div>
+  </div>
+  <div class="content">
+    <div id="pub-select"></div>
+    <div id="pub-content"></div>
+  </div>
+</div>
+
+
+
+<!-- 엔지니어 화면 -->
+<div class="app" id="app-engineer">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-brand">SP미디어텍</span>
+      <span class="topbar-sub">엔지니어</span>
+    </div>
+    <div class="topbar-right">
+      <button class="tbtn" onclick="loadData()">🔄 새로고침</button>
+      <button class="tbtn" onclick="goBack()">← 돌아가기</button>
+    </div>
+  </div>
+  <div class="content">
+    <div id="eng-select"></div>
+    <div id="eng-content"></div>
+  </div>
+</div>
+
+<!-- 상세설명 팝오버 -->
+<div class="detail-popup" id="detail-popup" onclick="closePopup(event)">
+  <div class="dp-backdrop"></div>
+  <div class="dp-box">
+    <button class="dp-close" onclick="closePopupDirect()">✕</button>
+    <div class="dp-tag" id="dp-tag"></div>
+    <div class="dp-title" id="dp-title"></div>
+    <div class="dp-how" id="dp-how" style="display:none"></div>
+    <div class="dp-desc" id="dp-desc"></div>
+  </div>
+</div>
+
+<!-- 비밀번호 모달 -->
+<div id="pw-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.8);align-items:center;justify-content:center">
+  <div style="background:#1a1a1a;border:0.5px solid #333;border-radius:16px;padding:32px 28px;width:320px;text-align:center">
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px">내부 관리</div>
+    <div style="font-size:12px;color:#555;margin-bottom:20px">비밀번호를 입력해주세요</div>
+    <input type="password" id="pw-input" placeholder="비밀번호"
+      style="width:100%;background:#111;border:0.5px solid #333;border-radius:8px;padding:10px 14px;color:#e8e6df;font-size:14px;font-family:inherit;outline:none;text-align:center;letter-spacing:3px;margin-bottom:10px"
+      onkeydown="if(event.key==='Enter')checkPw()">
+    <div id="pw-error" style="font-size:11px;color:#f87171;margin-bottom:10px;display:none">비밀번호가 틀렸습니다</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closePwModal()" style="flex:1;padding:9px;border-radius:8px;border:0.5px solid #2a2a2a;background:#161616;color:#888;cursor:pointer;font-family:inherit;font-size:12px">취소</button>
+      <button onclick="checkPw()" style="flex:1;padding:9px;border-radius:8px;border:none;background:#e8e6df;color:#111;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700">확인</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ 저장됨</div>
+
+<script>
+const SHEET_ID = '15S7CXLH_x5mfLWeH15AL6ocXwPJ5J_hgNw40jAC23lw';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=프로젝트DB`;
+
+const STEPS = [
+  {id:1,name:'계약 진행',summary:'계약서 작성 및 날인 진행',
+   desc:'출판사와 SP미디어텍 간 오디오북 제작 계약서를 작성하고 서명하는 단계입니다. 계약 내용에는 제작 범위, 납품 일정, 수익 배분 조건이 포함됩니다.'},
+  {id:2,name:'기획',summary:'성우 섭외 및 제작 방향 설정',
+   desc:'책의 장르, 독자층, 분위기를 분석하여 최적의 성우를 섭외하고 음악 방향을 설정합니다. 출판사에서 선호하는 성우 스타일이 있다면 이 단계에서 전달해 주세요.'},
+  {id:3,name:'최종 원고 제출',summary:'출판사로부터 PDF 원고 수령',
+   desc:'녹음에 사용할 최종 원고(PDF)를 SP미디어텍으로 전달하는 단계입니다. 수정이 완료된 최종본을 보내주셔야 이후 대본화 작업을 시작할 수 있습니다.'},
+  {id:4,name:'성우 확정·녹음 일정',summary:'성우 최종 확정 및 스케줄 조율',
+   desc:'SP미디어텍이 제안한 성우 샘플을 듣고 최종 선정해 주시는 단계입니다. 성우가 확정되면 녹음 일정이 확정되므로 가능한 한 빠르게 회신 부탁드립니다.'},
+  {id:5,name:'녹음',summary:'스튜디오 녹음 진행 중',
+   desc:'확정된 성우가 SP미디어텍 스튜디오에서 녹음을 진행하는 단계입니다. 이 기간 중 출판사의 별도 액션은 없으며, 진행 상황은 이 페이지에서 확인하실 수 있습니다.'},
+  {id:6,name:'편집',summary:'오디오 편집 및 음악 삽입',
+   desc:'녹음된 파일을 편집하고 음악과 효과음을 삽입하는 단계입니다. 사운드 엔지니어와 음악감독이 함께 작업하며, 이 단계에서도 출판사의 별도 액션은 없습니다.'},
+  {id:7,name:'내부 검수',summary:'전체 파일 재청취 및 오류 수정',
+   desc:'SP미디어텍 내부에서 완성된 오디오북을 처음부터 끝까지 다시 청취하며 오독, 음질 오류, 음악 균형 등을 점검하는 단계입니다.'},
+  {id:8,name:'출판사 검수',summary:'초안 전달 및 출판사 피드백 수령',
+   desc:'완성된 초안 파일을 출판사에 전달하고, 피드백을 받는 단계입니다. 공유 문서에 수정 요청 사항을 작성해 주시면 SP미디어텍에서 반영합니다. 마감일 내에 피드백을 주셔야 납품 일정이 유지됩니다.'},
+  {id:9,name:'최종 납품',summary:'최종 파일 정리 및 납품',
+   desc:'피드백이 반영된 최종 오디오북 파일을 납품하는 단계입니다. 파일 포맷, 챕터 구성, 메타데이터가 모두 포함되어 전달됩니다.'},
+  {id:10,name:'유통 및 정산',summary:'플랫폼 등록 및 정산 완료',
+   desc:'교보문고, 밀리의 서재 등 오디오북 플랫폼에 등록하고 정산 처리를 완료하는 단계입니다. 정산 정보(사업자등록증, 전자계산서 이메일)를 아직 전달하지 않으셨다면 이 단계에서 보내주세요.'},
+];
+
+const PUB_CHECKS = [
+  {key:'원고전달', dueKey:'원고전달_마감일', label:'원고 최종 PDF 전달', how:'이메일로 PDF 파일 첨부 전송',
+   desc:'녹음 대본 작업을 시작하려면 수정이 완료된 최종 원고가 필요합니다. 교정·교열이 끝난 최종본 PDF를 이메일로 보내주세요. 원고가 늦어지면 전체 납품 일정이 뒤로 밀릴 수 있습니다.'},
+  {key:'성우선정', dueKey:'성우선정_마감일', label:'성우 최종 선정', how:'이메일 또는 전화로 선정 의사 전달',
+   desc:'SP미디어텍이 책에 맞는 성우 후보를 선정하고 샘플을 전달해 드립니다. 샘플을 들어보신 후 선호하는 성우를 이메일 또는 전화로 알려주세요. 성우 확정이 늦어지면 녹음 일정 잡기가 어려워집니다.'},
+  {key:'북트레일러문구', dueKey:'북트레일러문구_마감일', label:'북트레일러 발췌 문구 전달 (200자 내외)', how:'이메일로 텍스트 전달',
+   desc:'오디오북 홍보용 북트레일러 영상에 사용할 책 발췌 문구입니다. 책의 핵심 매력이 담긴 200자 내외의 문장을 선택해 이메일로 보내주세요. 북트레일러는 플랫폼 등록 후 마케팅에 바로 활용됩니다.'},
+  {key:'타이틀페이지정보', dueKey:'타이틀페이지정보_마감일', label:'오디오북 타이틀 페이지 정보 전달', how:'이메일로 책제목·작가명·출판사명 표기 방식 전달',
+   desc:'오디오북 첫 화면(타이틀 페이지)에 들어갈 정보입니다. 책 제목, 저자명, 출판사명의 정확한 표기 방식(띄어쓰기·영문·부제 포함 여부 등)을 이메일로 알려주세요.'},
+  {key:'초안검수피드백', dueKey:'초안검수피드백_마감일', label:'초안 검수 피드백 전달', how:'수정 공유 문서 양식에 작성 후 이메일 전송',
+   desc:'SP미디어텍이 공유해 드린 초안 파일을 청취하고, 수정이 필요한 부분을 공유 문서 양식에 타임스탬프와 함께 작성해 주세요. 피드백이 많을수록 상세히 적어주실수록 최종본 품질이 높아집니다.'},
+  {key:'정산정보전달', dueKey:'정산정보전달_마감일', label:'정산 정보 전달', how:'사업자등록증 + 전자계산서 발급 이메일을 이메일로 전송',
+   desc:'플랫폼 정산 처리에 필요한 서류입니다. 사업자등록증 사본과 전자계산서를 받을 이메일 주소를 SP미디어텍으로 보내주세요. 이 정보가 없으면 수익 정산이 지연됩니다.'},
+];
+
+const SP_DEADLINES = [
+  {key:'SP_녹음완료_마감일',    label:'녹음 완료',    step:5},
+  {key:'SP_편집완료_마감일',    label:'편집 완료',    step:6},
+  {key:'SP_내부검수완료_마감일', label:'내부 검수 완료', step:7},
+  {key:'SP_납품완료_마감일',    label:'납품 완료',    step:9},
+];
+
+let projects = [];
+let currentFilter = 'all';
+let currentMode = null;
+let expanded = {};
+let localOv = {};
+let selPub = null;
+let selEng = null;
+
+// ── 팝오버 ──────────────────────────────────────────
+function showPopup(tag, title, desc, how) {
+  document.getElementById('dp-tag').textContent = tag;
+  document.getElementById('dp-title').textContent = title;
+  document.getElementById('dp-desc').textContent = desc;
+  const howEl = document.getElementById('dp-how');
+  if(how){ howEl.textContent = '📌 방법: ' + how; howEl.style.display='block'; }
+  else { howEl.style.display='none'; }
+  document.getElementById('detail-popup').classList.add('open');
+}
+function closePopup(e) { if(e.target===e.currentTarget||e.target.classList.contains('dp-backdrop')) closePopupDirect(); }
+function closePopupDirect() { document.getElementById('detail-popup').classList.remove('open'); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closePopupDirect(); });
+
+function loadOv() { try { localOv = JSON.parse(localStorage.getItem('sp_ov')||'{}'); } catch(e){localOv={};} }
+function saveOv() { try { localStorage.setItem('sp_ov', JSON.stringify(localOv)); } catch(e){} }
+
+function fmtDate(v) {
+  if (!v) return null;
+  if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}$/)) return v;
+  const m = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (m) { const d = new Date(+m[1],+m[2],+m[3]); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  return String(v)||null;
+}
+
+function getDday(ds) {
+  if (!ds) return null;
+  const t = new Date(ds); t.setHours(0,0,0,0);
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((t-now)/86400000);
+}
+function ddayTxt(d) { if(d===null)return''; if(d<0)return`D+${Math.abs(d)}`; if(d===0)return'D-day'; return`D-${d}`; }
+function ddayChipClass(d) {
+  if(d===null)return'chip-gray';
+  if(d<0)return'chip-red';
+  if(d<=3)return'chip-red';
+  if(d<=7)return'chip-amber';
+  return'chip-green';
+}
+function ddayInlineClass(d) {
+  if(d===null)return'chip-gray';
+  if(d<0)return'chip-red';
+  if(d<=3)return'chip-red';
+  if(d<=7)return'chip-amber';
+  return'chip-gray';
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const txt = await res.text();
+    const json = JSON.parse(txt.replace(/^[^(]+\(/,'').replace(/\);?\s*$/,''));
+    const rows = json.table.rows;
+    projects = rows.map((row,i) => {
+      const c = row.c;
+      const id = String(c[0]?.v||(i+1));
+      const base = {
+        id, pub:c[1]?.v||'', book:c[2]?.v||'',
+        currentStep:parseInt((c[3]?.v||'1').toString())||1,
+        deadline:fmtDate(c[4]?.v),
+        engineer:c[5]?.v||'',
+        pubContactName:c[6]?.v||'',
+        pubEmail:c[7]?.v||'', engEmail:c[8]?.v||'',
+        원고전달:c[9]?.v||'미완료',    원고전달_마감일:fmtDate(c[10]?.v),
+        성우선정:c[11]?.v||'미완료',   성우선정_마감일:fmtDate(c[12]?.v),
+        북트레일러문구:c[13]?.v||'미완료', 북트레일러문구_마감일:fmtDate(c[14]?.v),
+        타이틀페이지정보:c[15]?.v||'미완료', 타이틀페이지정보_마감일:fmtDate(c[16]?.v),
+        초안검수피드백:c[17]?.v||'미완료', 초안검수피드백_마감일:fmtDate(c[18]?.v),
+        정산정보전달:c[19]?.v||'미완료',  정산정보전달_마감일:fmtDate(c[20]?.v),
+        SP_녹음완료_마감일:fmtDate(c[21]?.v),
+        SP_편집완료_마감일:fmtDate(c[22]?.v),
+        SP_내부검수완료_마감일:fmtDate(c[23]?.v),
+        SP_납품완료_마감일:fmtDate(c[24]?.v),
+        sheetLink:c[25]?.v||'', contactEmail:c[26]?.v||'contact@spmediatek.com',
+        memo:c[27]?.v||'',
+        engSheetLink:c[28]?.v||'',
+      };
+      return {...base, ...(localOv[id]||{})};
+    }).filter(p=>p.pub);
+    localStorage.setItem('sp_cache', JSON.stringify(projects));
+  } catch(e) {
+    const cached = localStorage.getItem('sp_cache');
+    if (cached) projects = JSON.parse(cached).map(p=>({...p,...(localOv[p.id]||{})}));
+  }
+  renderAll();
+}
+
+function setOv(pid, key, val) {
+  if (!localOv[pid]) localOv[pid]={};
+  localOv[pid][key]=val;
+  saveOv();
+  const p = projects.find(x=>x.id===String(pid));
+  if(p) p[key]=val;
+  showToast();
+  renderAll();
+}
+
+function showToast() {
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+function hasPubPending(p) { return PUB_CHECKS.some(f=>p[f.key]!=='완료'); }
+function pendingCnt(p) { return PUB_CHECKS.filter(f=>p[f.key]!=='완료').length; }
+function cardClass(p) {
+  if(p.currentStep>=10) return 'done-card';
+  const d=getDday(p.deadline);
+  if(d!==null&&d<=3) return 'urgent';
+  if(hasPubPending(p)) return 'warn';
+  return 'ok';
+}
+
+const ADMIN_PW = 'spsp'; // 비밀번호
+
+function enterInternal() {
+  // 세션에 인증 기록 있으면 바로 진입
+  if (sessionStorage.getItem('sp_auth') === 'ok') {
+    enterMode('internal');
+    return;
+  }
+  const modal = document.getElementById('pw-modal');
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('pw-input').focus(), 50);
+}
+
+function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  if (val === ADMIN_PW) {
+    sessionStorage.setItem('sp_auth', 'ok');
+    closePwModal();
+    enterMode('internal');
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+function closePwModal() {
+  document.getElementById('pw-modal').style.display = 'none';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-error').style.display = 'none';
+}
+
+function enterMode(mode, pushState=true) {
+  // internal은 인증 없이 절대 진입 불가
+  if (mode === 'internal' && sessionStorage.getItem('sp_auth') !== 'ok') {
+    enterInternal();
+    return;
+  }
+  currentMode=mode;
+  document.getElementById('mode-screen').style.display='none';
+  document.querySelectorAll('.app').forEach(a=>a.classList.remove('active'));
+  document.getElementById(`app-${mode}`).classList.add('active');
+  if(pushState) history.pushState({mode}, '', `?mode=${mode}`);
+  renderAll();
+}
+function goBack(pushState=true) {
+  // 출판사/엔지니어 직접 링크로 들어온 경우 모드 선택 화면 노출 금지
+  if(directEntry && (currentMode==='publisher'||currentMode==='engineer')) {
+    return; // 뒤로가기 막음
+  }
+  currentMode=null;
+  document.getElementById('mode-screen').style.display='flex';
+  document.querySelectorAll('.app').forEach(a=>a.classList.remove('active'));
+  if(pushState) history.pushState({mode:null}, '', location.pathname);
+}
+window.addEventListener('popstate', e=>{
+  const mode = e.state?.mode;
+  if(mode==='publisher'||mode==='internal'||mode==='engineer') enterMode(mode, false);
+  else if(directEntry && (currentMode==='publisher'||currentMode==='engineer')) {
+    // 직접 진입 시 브라우저 뒤로가기도 막고 원래 페이지 유지
+    history.pushState({mode:currentMode}, '', `?mode=${currentMode}`);
+  } else {
+    goBack(false);
+  }
+});
+function goToSheet() { window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`,'_blank'); }
+
+// ── 내부 관리 ──────────────────────────────────
+function renderInternal() {
+  const total=projects.length;
+  const urgent=projects.filter(p=>{const d=getDday(p.SP_납품완료_마감일||p.deadline);return d!==null&&d<=5&&p.currentStep<10;}).length;
+  const pub=projects.filter(p=>hasPubPending(p)&&p.currentStep<10).length;
+  const done=projects.filter(p=>p.currentStep>=10).length;
+  document.getElementById('s-total').textContent=total;
+  document.getElementById('s-total-sub').textContent=`진행 중 ${total-done}건`;
+  document.getElementById('s-urgent').textContent=urgent;
+  document.getElementById('s-pub').textContent=pub;
+  document.getElementById('s-done').textContent=done;
+
+  let fps=projects;
+  switch(currentFilter){
+    case 'urgent': fps=projects.filter(p=>{const d=getDday(p.SP_납품완료_마감일||p.deadline);return d!==null&&d<=5&&p.currentStep<10;}); break;
+    case 'pub':    fps=projects.filter(p=>hasPubPending(p)&&p.currentStep<10); break;
+    case 'ing':    fps=projects.filter(p=>p.currentStep<10); break;
+    case 'done':   fps=projects.filter(p=>p.currentStep>=10); break;
+  }
+
+  const list=document.getElementById('internal-list');
+  if(!fps.length){list.innerHTML='<div class="empty">해당하는 프로젝트가 없어요</div>';return;}
+
+  list.innerHTML=fps.map(p=>{
+    const d=getDday(p.deadline);
+    const pct=Math.round((p.currentStep/10)*100);
+    const step=STEPS[p.currentStep-1]||STEPS[9];
+    const pending=pendingCnt(p);
+    const isExp=expanded[p.id];
+    const spDue=SP_DEADLINES.find(s=>s.step===p.currentStep);
+    const spDueVal=spDue?getDday(p[spDue.key]):null;
+
+    return `<div class="pcard ${cardClass(p)}">
+      <div class="card-head" onclick="toggleExpand('${p.id}')">
+        <div class="card-head-left">
+          <div class="card-title-row">
+            <span class="pub-name">${p.pub}</span>
+            ${p.pubContactName?`<span style="font-size:11px;color:#60a5fa;margin-left:4px">(${p.pubContactName})</span>`:''}
+            <span class="book-name">《${p.book}》</span>
+          </div>
+          <div class="card-meta-row">
+            <span class="stage-text">${p.currentStep<10?`${p.currentStep}단계 · ${step.name}`:'✅ 완료'}</span>
+            ${p.currentStep<10?`<span class="stage-summary">${step.summary}</span>`:''}
+            ${spDue&&spDueVal!==null?`<span class="chip ${ddayInlineClass(spDueVal)}" style="font-size:10px">SP마감 ${ddayTxt(spDueVal)}</span>`:''}
+          </div>
+        </div>
+        <div class="card-head-right">
+          ${(p.SP_납품완료_마감일||p.deadline)?`<span class="dday-chip ${ddayChipClass(d)}" title="납품 마감일">납품 ${ddayTxt(d)}</span>`:''}
+          <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
+            ${pending>0?`<span class="chip chip-amber">📌 ${pending}건</span>`:'<span class="chip chip-green">✅ 출판사</span>'}
+            ${p.engineer?`<span class="chip chip-purple">🎙 ${p.engineer}</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <span class="prog-pct">${pct}%</span>
+      </div>
+      <div class="card-detail ${isExp?'open':''}">
+        <div class="detail-grid">
+          <div class="detail-section">
+            <div class="ds-title">📊 현재 단계</div>
+            <div class="timeline" style="margin-bottom:14px">
+              ${STEPS.map(s=>{
+                const cls=s.id<p.currentStep?'tl-done':s.id===p.currentStep?'tl-ing':'tl-wait';
+                const lCls=s.id<p.currentStep?'ts-done':s.id===p.currentStep?'ts-ing':'ts-wait';
+                const icon=s.id<p.currentStep?'✅':s.id===p.currentStep?'🔄':'○';
+                const label=s.id<p.currentStep?'완료':s.id===p.currentStep?'진행 중':'대기';
+                return `<div class="tl-item ${cls}">
+                  <span class="tl-num">${s.id}</span>
+                  <span class="tl-name" onclick="event.stopPropagation();showPopup('${s.id}단계','${s.name}','${s.desc||s.summary}',null)">
+                    ${s.name}
+                  </span>
+                  <span class="tl-status ${lCls}">${icon} ${label}</span>
+                </div>`;
+              }).join('')}
+            </div>
+            <div class="ds-title">🗓 SP 내부 마감일</div>
+            ${SP_DEADLINES.map(s=>{
+              const d2=getDday(p[s.key]);
+              return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid #1a1a1a;font-size:12px">
+                <span style="flex:1;color:${s.step===p.currentStep?'#60a5fa':'#555'}">${s.label}</span>
+                ${p[s.key]?`<span class="chip ${ddayInlineClass(d2)}">${p[s.key]} (${ddayTxt(d2)})</span>`:'<span style="color:#666;font-size:11px">미입력</span>'}
+              </div>`;
+            }).join('')}
+            ${p.engSheetLink?`
+            <div class="ds-title" style="margin-top:14px">🎙 엔지니어 공유 시트</div>
+            <a href="${p.engSheetLink}" target="_blank" onclick="event.stopPropagation()" style="display:block;background:linear-gradient(135deg,#1a2a3a,#1e3a5c);border:1px solid #2a5080;border-radius:10px;padding:12px 16px;text-decoration:none;color:#60a5fa;font-size:13px;font-weight:600;margin-bottom:6px">
+              🎙 엔지니어 작업 시트 열기 →
+            </a>`:''}
+            ${p.sheetLink?`
+            <div class="ds-title" style="margin-top:10px">📝 출판사 공유 문서</div>
+            <a href="${p.sheetLink}" target="_blank" onclick="event.stopPropagation()" style="display:block;background:linear-gradient(135deg,#1a3a5c,#1e4976);border:1px solid #2a6496;border-radius:10px;padding:12px 16px;text-decoration:none;color:#60a5fa;font-size:13px;font-weight:600">
+              📝 초안 검수 &amp; 피드백 공유 문서 →
+              <span style="font-size:10px;color:#666;font-weight:400;margin-left:6px">출판사 피드백 확인</span>
+            </a>`:'<div style="font-size:11px;color:#444;padding:8px 0">📝 공유 문서 없음 — 시트 Z열에 링크 입력</div>'}
+          </div>
+          <div class="detail-section">
+            <div class="ds-title">
+              출판사 확인 항목
+              <span class="cnt chip ${pending>0?'chip-amber':'chip-green'}">${pending>0?`${pending}건 미완료`:'모두 완료'}</span>
+            </div>
+            <div class="check-item" style="flex-direction:column;align-items:flex-start">
+              ${PUB_CHECKS.map(f=>{
+                const fd=getDday(p[f.dueKey]);
+                const isDone=p[f.key]==='완료';
+                return `<div class="check-item" style="width:100%">
+                  <input type="checkbox" ${isDone?'checked':''} disabled style="opacity:0.6;cursor:not-allowed">
+                  <span class="ci-text ${isDone?'done':''}" style="flex:1" onclick="event.stopPropagation();showPopup('할 일',f.label,f.desc||'',f.how)">
+                    ${f.label}
+                  </span>
+                  ${p[f.dueKey]&&!isDone?`<span class="ci-due chip ${ddayInlineClass(fd)}">${p[f.dueKey]} (${ddayTxt(fd)})</span>`:''}
+                  ${isDone?`<span style="font-size:10px;color:#4ade80">완료</span>`:''}
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+          ${p.memo?`<div class="detail-section full"><div style="font-size:12px;color:#888;padding:10px;background:#0d0d0d;border-radius:6px">📝 ${p.memo}</div></div>`:''}
+        </div>
+        <div class="action-btns">
+          <button class="abtn" onclick="event.stopPropagation();copyLink('publisher','${p.pub}')">🔗 출판사 링크 복사</button>
+          ${p.engSheetLink?`<button class="abtn" onclick="event.stopPropagation();navigator.clipboard.writeText('${p.engSheetLink}').then(()=>showToast())">🔗 엔지니어 시트 링크 복사</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleExpand(id){expanded[id]=!expanded[id];renderInternal();}
+function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderInternal();}
+
+function copyLink(mode, name) {
+  const base = location.origin+location.pathname;
+  const url = `${base}?mode=${mode}&name=${encodeURIComponent(name)}`;
+  navigator.clipboard.writeText(url).then(()=>showToast());
+}
+
+// ── 출판사 화면 ──────────────────────────────────
+function renderPublisher() {
+  const params = new URLSearchParams(location.search);
+  const name = params.get('name');
+  if (name) { selPub=name; }
+  if (!selPub) { renderPubSelect(); return; }
+  const myProjects = projects.filter(p=>p.pub===selPub);
+  if (!myProjects.length) { renderPubSelect(); return; }
+  renderPubProjects(myProjects);
+}
+
+function renderPubSelect() {
+  const pubs=[...new Set(projects.map(p=>p.pub))];
+  document.getElementById('pub-select').innerHTML=`
+    <div style="font-size:13px;color:#666;margin-bottom:12px">출판사를 선택해주세요.</div>
+    <div class="pub-project-select">
+      ${pubs.map(pub=>`
+        <div class="psel-card" onclick="selPub='${pub}';renderPublisher()">
+          <span style="font-size:14px;font-weight:700">${pub}</span>
+          <span class="chip chip-blue">${projects.filter(p=>p.pub===pub).length}권</span>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('pub-content').innerHTML='';
+}
+
+function renderPubProjects(myProjects) {
+  document.getElementById('pub-select').innerHTML =
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">' +
+    '<button class="tbtn" onclick="selPub=null;renderPublisher()">← 목록</button>' +
+    '<span style="font-size:16px;font-weight:700;color:#fff">' + selPub + '</span>' +
+    '<span class="chip chip-blue">' + myProjects.length + '권 진행 중</span>' +
+    '</div>';
+
+  document.getElementById('pub-content').innerHTML = myProjects.map(function(p) {
+    var d = getDday(p.SP_납품완료_마감일 || p.deadline);
+    var step = STEPS[p.currentStep-1] || STEPS[9];
+    var pct = Math.round((p.currentStep/10)*100);
+    var pending = PUB_CHECKS.filter(function(f){ return p[f.key] !== '완료'; });
+    var done = PUB_CHECKS.filter(function(f){ return p[f.key] === '완료'; });
+
+    var cardCls = p.currentStep >= 10 ? 'done-card' :
+                  (d !== null && d <= 3) ? 'urgent' :
+                  pending.length > 0 ? 'warn' : 'ok';
+
+    // ── 카드 헤더 (내부용 동일) ──
+    var headerHtml =
+      '<div class="card-head">' +
+        '<div class="card-head-left">' +
+          '<div class="card-title-row">' +
+            '<span class="pub-name">' + p.pub + '</span>' +
+            '<span class="book-name">《' + p.book + '》</span>' +
+          '</div>' +
+          '<div class="card-meta-row">' +
+            '<span class="stage-text">' + (p.currentStep < 10 ? p.currentStep + '단계 · ' + step.name : '✅ 완료') + '</span>' +
+            (p.currentStep < 10 ? '<span class="stage-summary">' + step.summary + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="card-head-right">' +
+          ((p.SP_납품완료_마감일 || p.deadline) ?
+            '<span class="dday-chip ' + ddayChipClass(d) + '">납품 ' + ddayTxt(d) + '</span>' : '') +
+          '<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">' +
+            (pending.length > 0 ?
+              '<span class="chip chip-amber">📌 ' + pending.length + '건</span>' :
+              '<span class="chip chip-green">✅ 완료</span>') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // ── 진행바 ──
+    var progHtml =
+      '<div class="prog-wrap">' +
+        '<div class="prog-bar"><div class="prog-fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="prog-pct">' + pct + '%</span>' +
+      '</div>';
+
+    // ── 좌측: 타임라인 + SP내부마감일 + 공유문서 ──
+    var tlHtml =
+      '<div class="ds-title">📊 현재 단계</div>' +
+      '<div class="timeline" style="margin-bottom:14px">' +
+      STEPS.map(function(s) {
+        var cls = s.id < p.currentStep ? 'tl-done' : s.id === p.currentStep ? 'tl-ing' : 'tl-wait';
+        var lCls = s.id < p.currentStep ? 'ts-done' : s.id === p.currentStep ? 'ts-ing' : 'ts-wait';
+        var icon = s.id < p.currentStep ? '✅' : s.id === p.currentStep ? '🔄' : '○';
+        var label = s.id < p.currentStep ? '완료' : s.id === p.currentStep ? '진행 중' : '대기';
+        var safeDesc = (s.desc || s.summary).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return '<div class="tl-item ' + cls + '">' +
+          '<span class="tl-num">' + s.id + '</span>' +
+          '<span class="tl-name" onclick="showPopup(\'' + s.id + '단계\',\'' + s.name + '\',\'' + safeDesc + '\',null)">' +
+          s.name + '</span>' +
+          '<span class="tl-status ' + lCls + '">' + icon + ' ' + label + '</span>' +
+          '</div>';
+      }).join('') +
+      '</div>';
+
+    var sheetHtml = '';
+    if (p.sheetLink) {
+      sheetHtml =
+        '<div class="ds-title" style="margin-top:14px">📝 출판사 공유 문서</div>' +
+        '<a href="' + p.sheetLink + '" target="_blank" style="display:block;background:linear-gradient(135deg,#1a3a5c,#1e4976);border:1px solid #2a6496;border-radius:10px;padding:12px 16px;text-decoration:none;color:#60a5fa;font-size:13px;font-weight:600">' +
+        '📝 초안 검수 &amp; 피드백 공유 문서 →' +
+        '<div style="font-size:11px;color:#777;font-weight:400;margin-top:3px">수정 요청 사항을 타임스탬프와 함께 작성해 주세요</div>' +
+        '</a>';
+    }
+
+    var contactHtml =
+      '<div class="ds-title" style="margin-top:14px">📬 자료 전달</div>' +
+      '<div class="contact-row"><span class="ct-label">이메일</span><span class="ct-val">spmediatek@naver.com</span></div>' +
+      '<div class="contact-row"><span class="ct-label">제목 형식</span><span class="ct-val">[' + p.pub + '] ' + p.book + ' + 자료명</span></div>';
+
+    var leftSection =
+      '<div class="detail-section">' +
+        tlHtml + sheetHtml + contactHtml +
+      '</div>';
+
+    // ── 우측: 체크리스트 ──
+    var checkItems = '';
+    // 미완료
+    if (pending.length > 0) {
+      checkItems +=
+        '<div class="ds-title">출판사 확인 항목 <span class="cnt chip chip-amber">' + pending.length + '건 미완료</span></div>';
+      pending.forEach(function(f) {
+        var fd = getDday(p[f.dueKey]);
+        var safeDesc = (f.desc||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        var safeHow = (f.how||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        var dueHtml = p[f.dueKey] ?
+          '<span class="chip ' + ddayInlineClass(fd) + '" style="font-size:10px">' + p[f.dueKey] + ' (' + ddayTxt(fd) + ')</span>' : '';
+        checkItems +=
+          '<div class="check-item">' +
+            '<input type="checkbox" disabled style="opacity:0.5;cursor:not-allowed">' +
+            '<span class="ci-text" style="flex:1" onclick="showPopup(\'할 일\',\'' + f.label + '\',\'' + safeDesc + '\',\'' + safeHow + '\')">' +
+            f.label + '</span>' +
+            dueHtml +
+          '</div>';
+      });
+    }
+    // 완료
+    if (done.length > 0) {
+      checkItems +=
+        '<div class="ds-title" style="margin-top:12px">완료 항목 <span class="cnt chip chip-green">' + done.length + '건</span></div>';
+      done.forEach(function(f) {
+        var safeDesc = (f.desc||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        var safeHow = (f.how||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        checkItems +=
+          '<div class="check-item">' +
+            '<input type="checkbox" checked disabled style="opacity:0.5;cursor:not-allowed">' +
+            '<span class="ci-text done" style="flex:1" onclick="showPopup(\'할 일\',\'' + f.label + '\',\'' + safeDesc + '\',\'' + safeHow + '\')">' +
+            f.label + '</span>' +
+            '<span style="font-size:11px;color:#4ade80">완료</span>' +
+          '</div>';
+      });
+    }
+
+    var rightSection = '<div class="detail-section">' + checkItems + '</div>';
+
+    return '<div class="pcard ' + cardCls + '" style="margin-bottom:12px">' +
+      headerHtml + progHtml +
+      '<div class="card-detail open">' +
+        '<div class="detail-grid">' +
+          leftSection + rightSection +
+        '</div>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+}
+
+// ── 엔지니어 화면 ──────────────────────────────────
+function renderEngineer() {
+  const params = new URLSearchParams(location.search);
+  const name = params.get('name');
+  let engName = name || null;
+
+  if (!engName) {
+    const engs = [...new Set(projects.map(p=>p.engineer).filter(Boolean))];
+    document.getElementById('eng-select').innerHTML = `
+      <div style="font-size:13px;color:#666;margin-bottom:12px">담당자를 선택해주세요.</div>
+      <div class="pub-project-select">
+        ${engs.map(e=>`
+          <div class="psel-card" onclick="location.search='?mode=engineer&name='+encodeURIComponent('${e}')">
+            <span style="font-size:14px;font-weight:700">🎙 ${e}</span>
+            <span class="chip chip-blue">${projects.filter(p=>p.engineer===e).length}건</span>
+          </div>`).join('')}
+      </div>`;
+    document.getElementById('eng-content').innerHTML = '';
+    return;
+  }
+
+  const myProjects = projects.filter(p=>p.engineer===engName);
+  document.getElementById('eng-select').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <button class="tbtn" onclick="history.back()">← 목록</button>
+      <span style="font-size:14px;font-weight:700;color:#e2e8f0">🎙 ${engName}</span>
+      <span class="chip chip-blue">${myProjects.length}건</span>
+    </div>`;
+
+  document.getElementById('eng-content').innerHTML = myProjects.map(p=>{
+    const step = STEPS[p.currentStep-1]||STEPS[9];
+    const pct = Math.round((p.currentStep/10)*100);
+    return `<div class="pcard">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-title-row">
+            <span class="pub-name">${p.pub}</span>
+            <span class="book-name">《${p.book}》</span>
+          </div>
+          <div class="card-meta-row">
+            <span class="stage-text">${p.currentStep<10?`${p.currentStep}단계 · ${step.name}`:'✅ 완료'}</span>
+            <span class="stage-summary">${step.summary}</span>
+          </div>
+        </div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <span class="prog-pct">${pct}%</span>
+      </div>
+      <div class="timeline" style="margin:12px 0">
+        ${STEPS.map(s=>{
+          const cls=s.id<p.currentStep?'tl-done':s.id===p.currentStep?'tl-ing':'tl-wait';
+          const lCls=s.id<p.currentStep?'ts-done':s.id===p.currentStep?'ts-ing':'ts-wait';
+          const icon=s.id<p.currentStep?'✅':s.id===p.currentStep?'🔄':'○';
+          const label=s.id<p.currentStep?'완료':s.id===p.currentStep?'진행 중':'대기';
+          return `<div class="tl-item ${cls}">
+            <span class="tl-num">${s.id}</span>
+            <span class="tl-name" onclick="showPopup('${s.id}단계','${s.name}','${s.desc||s.summary}',null)">
+              ${s.name}
+            </span>
+            <span class="tl-status ${lCls}">${icon} ${label}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      ${p.engSheetLink?`<a href="${p.engSheetLink}" target="_blank" class="link-btn" style="margin-top:8px">📊 작업 시트 열기 →</a>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderAll() {
+  if(currentMode==='internal') renderInternal();
+  else if(currentMode==='publisher') renderPublisher();
+  else if(currentMode==='engineer') renderEngineer();
+}
+
+function checkUrl() {
+  const p=new URLSearchParams(location.search);
+  const mode=p.get('mode');
+  if(mode==='publisher'||mode==='engineer') {
+    directEntry = true;
+    history.replaceState({mode}, '', location.href);
+    enterMode(mode, false);
+  } else if(mode==='internal') {
+    // URL로 internal 직접 접근 시 비밀번호 요구
+    history.replaceState({mode:null}, '', location.pathname);
+    enterInternal();
+  } else {
+    history.replaceState({mode:null}, '', location.href);
+  }
+}
+
+loadOv();
+loadData().then(()=>checkUrl());
+</script>
+</body>
+</html>
