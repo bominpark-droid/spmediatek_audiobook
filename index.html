@@ -200,6 +200,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0d0d0d;color:#e8e6df;min-
       <div class="desc">제작 현황 확인 및 자료 제출</div>
     </div>
   </div>
+</div>
 
 <!-- 내부 관리 -->
 <div class="app" id="app-internal">
@@ -300,7 +301,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0d0d0d;color:#e8e6df;min-
 
 <script>
 const SHEET_ID = '15S7CXLH_x5mfLWeH15AL6ocXwPJ5J_hgNw40jAC23lw';
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=프로젝트DB`;
+const SHEET_NAME = '프로젝트DB';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
 
 const STEPS = [
   {id:1, name:'계약 진행', summary:'계약서 작성 및 날인 진행',
@@ -1169,7 +1171,15 @@ function checkUrl() {
 }
 
 loadOv();
-loadData().then(()=>checkUrl());
+loadData().then(()=>checkUrl()).catch(e=>{
+  console.error('LOAD ERROR:', e);
+  alert('데이터 로드 실패: ' + e.message);
+});
+
+window.addEventListener('error', e => {
+  console.error('GLOBAL ERROR:', e.error);
+  alert('에러 발생: ' + (e.error?.message || e.message));
+});
 </script>
 </body>
 </html>
