@@ -179,6 +179,43 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0d0d0d;color:#e8e6df;min-
 .tl-name:hover{color:#60a5fa;text-decoration:underline dotted}
 .ci-text{cursor:pointer;transition:color 0.15s}
 .ci-text:hover{color:#60a5fa;text-decoration:underline dotted}
+
+/* ── 모바일 반응형 ── */
+@media (max-width: 768px) {
+  .detail-grid{grid-template-columns:1fr !important;gap:12px}
+  .summary-grid{grid-template-columns:repeat(2,1fr) !important}
+  .topbar{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  .topbar-brand{font-size:14px}
+  .topbar-sub{font-size:11px}
+  .tbtn{font-size:11px;padding:6px 10px}
+
+  /* 단계 박스 - 가로로 펼치기 */
+  .tl-item{display:flex !important;align-items:center !important;flex-direction:row !important;padding:10px 12px !important;gap:10px !important}
+  .tl-num{flex-shrink:0;width:24px}
+  .tl-name{flex:1;min-width:0;word-break:keep-all;font-size:13px;line-height:1.4;text-align:left;white-space:normal}
+  .tl-status{flex-shrink:0;font-size:11px;white-space:nowrap}
+
+  /* 체크리스트 - 가로 펼치고 D-day는 줄 바꿈 허용 */
+  .check-item{flex-wrap:wrap;align-items:flex-start;padding:10px 0}
+  .check-item .ci-text{font-size:13px;line-height:1.4;word-break:keep-all;min-width:0;flex:1 1 70%}
+  .ci-due{flex-shrink:0;font-size:10px;margin-top:2px}
+
+  /* SP 내부 마감일 행도 가로 */
+  .detail-section > div[style*="display:flex"]{flex-wrap:wrap}
+
+  /* 폰트/패딩 축소 */
+  .summary-card{padding:12px}
+  .summary-card .lbl{font-size:10px}
+  .summary-card .val{font-size:18px}
+  .detail-section{padding:12px}
+  .ds-title{font-size:10px}
+  .card-head{padding:12px}
+  .card-title{font-size:14px}
+
+  /* 팝업 모바일 대응 */
+  .detail-popup{max-width:92vw !important;max-height:85vh}
+  .dp-desc{font-size:12px;line-height:1.7}
+}
 </style>
 </head>
 <body>
