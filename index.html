@@ -225,17 +225,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0d0d0d;color:#e8e6df;min-
     <h1>SP미디어텍</h1>
     <p>오디오북 제작 진행 현황</p>
   </div>
-  <div class="mode-cards">
-    <div class="mode-card" onclick="enterInternal()">
-      <div class="icon">🏢</div>
-      <div class="title">내부 관리</div>
-      <div class="desc">전체 프로젝트 현황 관리</div>
-    </div>
-    <div class="mode-card" onclick="enterMode('publisher')">
-      <div class="icon">📚</div>
-      <div class="title">출판사</div>
-      <div class="desc">제작 현황 확인 및 자료 제출</div>
-    </div>
+  <div id="entry-box" style="width:100%;max-width:320px;background:#161616;border:0.5px solid #2a2a2a;border-radius:16px;padding:28px 24px;text-align:center">
+    <div style="font-size:13px;color:#888;margin-bottom:18px">내부 관리자 비밀번호를 입력해주세요</div>
+    <input type="password" id="entry-pw" placeholder="비밀번호"
+      style="width:100%;background:#0d0d0d;border:0.5px solid #2a2a2a;border-radius:10px;padding:11px 16px;color:#e8e6df;font-size:14px;font-family:inherit;outline:none;text-align:center;letter-spacing:3px;margin-bottom:10px"
+      onkeydown="if(event.key==='Enter')entrySubmit()">
+    <div id="entry-err" style="font-size:11px;color:#f87171;margin-bottom:10px;display:none">비밀번호가 올바르지 않습니다</div>
+    <button onclick="entrySubmit()" style="width:100%;padding:11px;border-radius:10px;border:none;background:#e8e6df;color:#111;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700">로그인</button>
   </div>
 </div>
 
@@ -744,6 +740,19 @@ function cardClass(p) {
 
 const ADMIN_PW = 'spsp'; // 비밀번호
 
+// 메인 화면 비밀번호 제출
+function entrySubmit() {
+  const val = document.getElementById('entry-pw').value;
+  if (val === ADMIN_PW) {
+    sessionStorage.setItem('sp_auth', 'ok');
+    enterMode('internal');
+  } else {
+    document.getElementById('entry-err').style.display = 'block';
+    document.getElementById('entry-pw').value = '';
+    document.getElementById('entry-pw').focus();
+  }
+}
+
 function enterInternal() {
   // 세션에 인증 기록 있으면 바로 진입
   if (sessionStorage.getItem('sp_auth') === 'ok') {
@@ -945,33 +954,69 @@ function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.fchip').fo
 
 function copyLink(mode, name) {
   const base = location.origin+location.pathname;
-  const url = `${base}?mode=${mode}&name=${encodeURIComponent(name)}`;
+  let url;
+  if (mode === 'publisher') {
+    // 출판사 링크는 보안 key 자동 첨부
+    const key = genPubKey(name);
+    url = `${base}?mode=${mode}&name=${encodeURIComponent(name)}&key=${key}`;
+  } else {
+    url = `${base}?mode=${mode}&name=${encodeURIComponent(name)}`;
+  }
   navigator.clipboard.writeText(url).then(()=>showToast());
+}
+
+// ── 출판사 보안 키 생성 ──
+// 출판사명에서 고정된 4자리 코드를 만들어 URL 변조를 방지
+function genPubKey(name) {
+  if (!name) return '';
+  // 단순한 해시 — 같은 이름이면 항상 같은 key
+  var s = name + 'sp_audiobook_2026';
+  var h = 0;
+  for (var i = 0; i < s.length; i++) {
+    h = ((h << 5) - h) + s.charCodeAt(i);
+    h = h & h;
+  }
+  // 4자리 36진수 (a~z, 0~9)
+  var code = Math.abs(h).toString(36).slice(0, 4).padStart(4, '0');
+  return code;
 }
 
 // ── 출판사 화면 ────────────
 function renderPublisher() {
   const params = new URLSearchParams(location.search);
   const name = params.get('name');
-  if (name) { selPub=name; }
-  if (!selPub) { renderPubSelect(); return; }
+  const key  = params.get('key');
+
+  // name 또는 key가 없으면 접근 불가
+  if (!name || !key) {
+    renderPubBlocked();
+    return;
+  }
+  // key가 일치하지 않으면 접근 불가
+  if (key !== genPubKey(name)) {
+    renderPubBlocked();
+    return;
+  }
+
+  selPub = name;
   const myProjects = projects.filter(p=>p.pub===selPub);
-  if (!myProjects.length) { renderPubSelect(); return; }
+  if (!myProjects.length) { renderPubBlocked(); return; }
   renderPubProjects(myProjects);
 }
 
+function renderPubBlocked() {
+  document.getElementById('pub-select').innerHTML = '';
+  document.getElementById('pub-content').innerHTML =
+    '<div style="text-align:center;padding:80px 20px;color:#666">' +
+    '<div style="font-size:32px;margin-bottom:16px">🔒</div>' +
+    '<div style="font-size:15px;color:#888;margin-bottom:8px">접근할 수 없는 페이지입니다</div>' +
+    '<div style="font-size:12px;color:#555;line-height:1.7">올바른 링크로 접근해주세요.<br>담당 매니저에게 링크를 요청해 주세요.</div>' +
+    '</div>';
+}
+
 function renderPubSelect() {
-  const pubs=[...new Set(projects.map(p=>p.pub))];
-  document.getElementById('pub-select').innerHTML=`
-    <div style="font-size:13px;color:#666;margin-bottom:12px">출판사를 선택해주세요.</div>
-    <div class="pub-project-select">
-      ${pubs.map(pub=>`
-        <div class="psel-card" onclick="selPub='${pub}';renderPublisher()">
-          <span style="font-size:14px;font-weight:700">${pub}</span>
-          <span class="chip chip-blue">${projects.filter(p=>p.pub===pub).length}권</span>
-        </div>`).join('')}
-    </div>`;
-  document.getElementById('pub-content').innerHTML='';
+  // 더 이상 출판사 선택 화면을 보여주지 않음 (보안)
+  renderPubBlocked();
 }
 
 function renderPubProjects(myProjects) {
