@@ -1104,9 +1104,18 @@ function renderPubProjects(myProjects) {
       '<div class="contact-row"><span class="ct-label">이메일</span><span class="ct-val">spmediatek@naver.com</span></div>' +
       '<div class="contact-row"><span class="ct-label">제목 형식</span><span class="ct-val">[' + p.pub + '] ' + p.book + ' + 자료명</span></div>';
 
+    var memoHtml = '';
+    if (p.memo) {
+      memoHtml =
+        '<div class="ds-title" style="margin-top:14px">💬 SP미디어텍 메모</div>' +
+        '<div style="background:#0d1a2a;border:1px solid #1a3a4a;border-radius:10px;padding:12px 16px;font-size:13px;color:#c0d8f0;line-height:1.7;white-space:pre-wrap">' +
+        p.memo +
+        '</div>';
+    }
+
     var leftSection =
       '<div class="detail-section">' +
-        tlHtml + sheetHtml + contactHtml +
+        tlHtml + memoHtml + sheetHtml + contactHtml +
       '</div>';
 
     // ── 우측: 체크리스트 ──
