@@ -1,0 +1,1 @@
+# logs/ 디렉토리 유지용. 수집 상태는 logs/YYYY-MM-DD_status.json 으로 쌓인다.

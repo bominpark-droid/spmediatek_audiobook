@@ -1,0 +1,78 @@
+name: daily-crawl
+
+# 매일 04:00 KST = 19:00 UTC (전날). GitHub Actions cron은 UTC 기준.
+on:
+  schedule:
+    - cron: "0 19 * * *"
+  workflow_dispatch: {}   # 수동 실행(정찰·검증용)
+
+permissions:
+  contents: write   # CSV/로그 커밋·푸시용
+
+concurrency:
+  group: daily-crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run crawlers
+        id: crawl
+        # 일부 크롤러가 실패해도 커밋·알림 단계까지 진행되도록 실패를 보류한다.
+        continue-on-error: true
+        run: python run_all.py
+
+      - name: Commit collected data
+        run: |
+          git config user.name "sp-book-data bot"
+          git config user.email "actions@github.com"
+          git add data/ logs/
+          if git diff --cached --quiet; then
+            echo "변경 없음 — 커밋 생략"
+          else
+            git commit -m "data: $(date -u +%Y-%m-%d) 차트 수집"
+            for i in 1 2 3 4; do
+              git push && break || { echo "push 실패, 재시도 $i"; sleep $((2**i)); git pull --rebase || true; }
+            done
+          fi
+
+      - name: Upload failure snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshots-${{ github.run_id }}
+          path: logs/snapshots/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Read status summary
+        if: always()
+        id: status
+        run: |
+          f=$(ls -1 logs/*_status.json 2>/dev/null | tail -1)
+          if [ -n "$f" ]; then
+            echo "본 실행 상태: $f"
+            cat "$f"
+            failed=$(python -c "import json,sys; print(json.load(open('$f'))['failed'])")
+            echo "failed=$failed" >> "$GITHUB_OUTPUT"
+          else
+            echo "failed=99" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fail job if any crawler failed
+        # 실패 크롤러가 있으면 잡을 실패 처리 → GitHub Actions 기본 이메일 알림 발송
+        if: steps.status.outputs.failed != '0'
+        run: |
+          echo "::error::크롤러 실패 ${{ steps.status.outputs.failed }}건 — logs/*_status.json 및 snapshots 아티팩트 확인"
+          exit 1

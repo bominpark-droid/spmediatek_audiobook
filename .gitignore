@@ -1,0 +1,8 @@
+# 파싱 실패 진단용 HTML 스냅샷 (Actions 아티팩트로만 보존, git 미포함)
+logs/snapshots/
+# 로컬 실행 로그
+logs/crawl.log
+__pycache__/
+*.pyc
+.venv/
+.env
