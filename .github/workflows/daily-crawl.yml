@@ -64,15 +64,16 @@ jobs:
           if [ -n "$f" ]; then
             echo "본 실행 상태: $f"
             cat "$f"
-            failed=$(python -c "import json,sys; print(json.load(open('$f'))['failed'])")
-            echo "failed=$failed" >> "$GITHUB_OUTPUT"
+            # prod_failed = 정식 가동 차트 실패 수. 이 값으로만 알림을 건다.
+            prod_failed=$(python -c "import json; print(json.load(open('$f')).get('prod_failed', 99))")
+            echo "prod_failed=$prod_failed" >> "$GITHUB_OUTPUT"
           else
-            echo "failed=99" >> "$GITHUB_OUTPUT"
+            echo "prod_failed=99" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Fail job if any crawler failed
-        # 실패 크롤러가 있으면 잡을 실패 처리 → GitHub Actions 기본 이메일 알림 발송
-        if: steps.status.outputs.failed != '0'
+      - name: Fail job if a production crawler failed
+        # 정식 가동 차트가 깨졌을 때만 잡 실패 → 이메일 알림. 공사 중 차트는 무시.
+        if: steps.status.outputs.prod_failed != '0'
         run: |
-          echo "::error::크롤러 실패 ${{ steps.status.outputs.failed }}건 — logs/*_status.json 및 snapshots 아티팩트 확인"
+          echo "::error::정식 가동 크롤러 실패 ${{ steps.status.outputs.prod_failed }}건 — logs/*_status.json 확인"
           exit 1

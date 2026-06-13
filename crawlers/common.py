@@ -55,6 +55,9 @@ class ChartJob:
     chart: str      # 예: general_best
     slug: str       # CSV 파일명용 짧은 이름. 예: general
     func: Callable[[], list[dict]]
+    # experimental=True 인 차트는 '공사 중'. 실패해도 잡을 실패시키지 않아
+    # 매일 거짓 알림이 오지 않게 한다. 정식 가동(False) 차트가 깨질 때만 알림.
+    experimental: bool = False
 
 
 def today_kst() -> datetime.date:

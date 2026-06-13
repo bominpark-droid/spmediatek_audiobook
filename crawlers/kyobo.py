@@ -177,6 +177,6 @@ def crawl_ebook() -> list[dict]:
 
 
 JOBS = [
-    common.ChartJob("kyobo", "general_best", "general", crawl_general),
-    common.ChartJob("kyobo", "ebook_best", "ebook", crawl_ebook),
+    common.ChartJob("kyobo", "general_best", "general", crawl_general, experimental=True),
+    common.ChartJob("kyobo", "ebook_best", "ebook", crawl_ebook, experimental=True),
 ]

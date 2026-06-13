@@ -106,5 +106,5 @@ def crawl_audiobook() -> list[dict]:
 
 
 JOBS = [
-    common.ChartJob("kyobo_sam", "audiobook_best", "audiobook", crawl_audiobook),
+    common.ChartJob("kyobo_sam", "audiobook_best", "audiobook", crawl_audiobook, experimental=True),
 ]
