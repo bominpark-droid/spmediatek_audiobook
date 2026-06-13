@@ -1,0 +1,60 @@
+{
+  "date": "2026-06-13",
+  "ok": 3,
+  "failed": 7,
+  "results": [
+    {
+      "job": "aladin/ebook_best",
+      "ok": false,
+      "error": "도서 블록(div.ss_book_box)을 찾지 못함 — 페이지 구조 변경 의심 (page=1)"
+    },
+    {
+      "job": "yes24/general_best",
+      "ok": true,
+      "rows": 100,
+      "file": "data/2026/06/2026-06-13_yes24_general.csv"
+    },
+    {
+      "job": "yes24/ebook_best",
+      "ok": true,
+      "rows": 100,
+      "file": "data/2026/06/2026-06-13_yes24_ebook.csv"
+    },
+    {
+      "job": "kyobo/general_best",
+      "ok": false,
+      "error": "도서 블록(li.prod_item)을 찾지 못함 — JS 렌더링 전환 또는 구조 변경 의심"
+    },
+    {
+      "job": "kyobo/ebook_best",
+      "ok": false,
+      "error": "404 Client Error: Not Found for url: https://product.kyobobook.co.kr/bestseller/ebook?page=1&per=50"
+    },
+    {
+      "job": "audible_us/best_sellers",
+      "ok": true,
+      "rows": 50,
+      "file": "data/2026/06/2026-06-13_audible_us_bestsellers.csv"
+    },
+    {
+      "job": "kyobo_sam/audiobook_best",
+      "ok": false,
+      "error": "교보 sam 오디오북 차트 접근 실패 — 로그인 장벽 또는 URL 변경 가능성. 스냅샷 확인 후 대체 경로 결정 필요. 시도 내역: https://sam.kyobobook.co.kr/best/audiobook → 404 Client Error: Not Found for url: https://sam.kyobobook.co.kr/best/audiobook | https://product.kyobobook.co.kr/bestseller/audio → 404 Client Error: Not Found for url: https://product.kyobobook.co.kr/bestseller/audio | https://product.kyobobook.co.kr/category/best/audio → 404 Client Error: Not Found for url: https://store.kyobobook.co.kr/category/domestic/audio/home"
+    },
+    {
+      "job": "welaaa/audiobook_best",
+      "ok": false,
+      "error": "윌라 오디오북 차트 파싱 실패 — JS 렌더링 필요 가능성(Playwright 검토). 시도 내역: https://www.welaaa.com/audiobook/best → 403 Client Error: Forbidden for url: https://www.welaaa.com/audiobook/best | https://www.welaaa.com/best → 403 Client Error: Forbidden for url: https://www.welaaa.com/best | https://www.welaaa.com/category/audiobook → 403 Client Error: Forbidden for url: https://www.welaaa.com/category/audiobook"
+    },
+    {
+      "job": "millie/ebook_best",
+      "ok": false,
+      "error": "밀리의서재 ebook 차트 접근 실패 — 앱 전용/JS 렌더링 가능성. 스냅샷 확인 후 대안(모바일 웹·공개 API·대체 차트) 결정 필요. 시도 내역: https://www.millie.co.kr/v3/bestseller → 응답은 받았으나 목록 파싱 0건 | https://millie.co.kr/v3/bestseller → 응답은 받았으나 목록 파싱 0건"
+    },
+    {
+      "job": "millie/audiobook_best",
+      "ok": false,
+      "error": "밀리의서재 audiobook 차트 접근 실패 — 앱 전용/JS 렌더링 가능성. 스냅샷 확인 후 대안(모바일 웹·공개 API·대체 차트) 결정 필요. 시도 내역: https://www.millie.co.kr/v3/bestseller/audiobook → 응답은 받았으나 목록 파싱 0건 | https://millie.co.kr/v3/bestseller/audiobook → 응답은 받았으나 목록 파싱 0건"
+    }
+  ]
+}
