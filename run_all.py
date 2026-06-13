@@ -27,33 +27,41 @@ def main() -> int:
     log = logging.getLogger("run_all")
     results = []
 
-    for mod_name in CRAWLER_MODULES:
-        try:
-            mod = importlib.import_module(f"crawlers.{mod_name}")
-            jobs = mod.JOBS
-        except Exception as e:
-            log.error("[%s] 모듈 로드 실패: %s", mod_name, e)
-            results.append({"job": mod_name, "ok": False, "error": f"모듈 로드 실패: {e}"})
-            continue
-
-        for job in jobs:
-            name = f"{job.platform}/{job.chart}"
-            tag = " [공사중]" if job.experimental else ""
+    try:
+        for mod_name in CRAWLER_MODULES:
             try:
-                rows = job.func()
-                if not rows:
-                    raise RuntimeError("0건 수집 — 파싱 결과 없음")
-                path = common.write_csv(rows, date, job.platform, job.chart, job.slug)
-                log.info("[%s]%s OK — %d건 → %s", name, tag, len(rows),
-                         path.relative_to(common.ROOT))
-                results.append({"job": name, "ok": True, "rows": len(rows),
-                                "experimental": job.experimental,
-                                "file": str(path.relative_to(common.ROOT))})
+                mod = importlib.import_module(f"crawlers.{mod_name}")
+                jobs = mod.JOBS
             except Exception as e:
-                log.error("[%s]%s 실패: %s", name, tag, e)
-                log.debug(traceback.format_exc())
-                results.append({"job": name, "ok": False,
-                                "experimental": job.experimental, "error": str(e)})
+                log.error("[%s] 모듈 로드 실패: %s", mod_name, e)
+                results.append({"job": mod_name, "ok": False, "error": f"모듈 로드 실패: {e}"})
+                continue
+
+            for job in jobs:
+                name = f"{job.platform}/{job.chart}"
+                tag = " [공사중]" if job.experimental else ""
+                try:
+                    rows = job.func()
+                    if not rows:
+                        raise RuntimeError("0건 수집 — 파싱 결과 없음")
+                    path = common.write_csv(rows, date, job.platform, job.chart, job.slug)
+                    log.info("[%s]%s OK — %d건 → %s", name, tag, len(rows),
+                             path.relative_to(common.ROOT))
+                    results.append({"job": name, "ok": True, "rows": len(rows),
+                                    "experimental": job.experimental,
+                                    "file": str(path.relative_to(common.ROOT))})
+                except Exception as e:
+                    log.error("[%s]%s 실패: %s", name, tag, e)
+                    log.debug(traceback.format_exc())
+                    results.append({"job": name, "ok": False,
+                                    "experimental": job.experimental, "error": str(e)})
+    finally:
+        # Playwright 브라우저가 떠 있으면 정리 (지연 import라 미사용 시 무해).
+        try:
+            from crawlers import browser
+            browser.shutdown()
+        except Exception:
+            pass
 
     # 정식 가동(experimental=False) 차트 실패만 알림 대상. 공사 중 실패는 기록만.
     prod_failed = sum(1 for r in results if not r["ok"] and not r.get("experimental"))
