@@ -1,0 +1,42 @@
+name: weekly-summary
+
+# 매주 월요일 06:00 KST = 일요일 21:00 UTC. 그 주 일요일 수집분까지 반영.
+on:
+  schedule:
+    - cron: "0 21 * * 0"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 지난주 CSV 비교(신규 진입 계산)를 위해 전체 이력 필요
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build summary and push to Google Sheets
+        env:
+          # Apps Script 웹앱 URL을 저장소 Secret(SHEETS_WEBHOOK_URL)에 등록.
+          # 미설정 시 모듈은 logs/summary_preview.json 만 남기고 정상 종료한다.
+          SHEETS_WEBHOOK_URL: ${{ secrets.SHEETS_WEBHOOK_URL }}
+        run: python summary.py
+
+      - name: Upload summary preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary-preview-${{ github.run_id }}
+          path: logs/summary_preview.json
+          if-no-files-found: ignore
+          retention-days: 30
