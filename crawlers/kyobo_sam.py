@@ -1,110 +1,72 @@
-"""교보문고 오디오북 — kyobo_sam (오디오북 인기 차트).
+"""교보문고 오디오북 — kyobo_sam (오디오북 인기 차트, Playwright 렌더링).
 
-기존 sam.kyobobook.co.kr 서비스는 store.kyobobook.co.kr 로 이전된 것으로 보임.
-store.kyobobook.co.kr 경로를 우선 시도하고, 실패 시 product.kyobobook.co.kr 경로 시도.
-모두 실패하면 스냅샷과 함께 보고 (전체 수집은 계속 진행).
-
-1차 실행 결과:
-- store.kyobobook.co.kr/category/domestic/audio/home → 404 확인됨
-- 아래 후보 URL은 store 내 다른 경로를 순차 시도
+기존 sam.kyobobook.co.kr 은 이전된 것으로 보이며 후보 URL이 모두 404였다.
+실제 브라우저로 교보 종합 베스트 페이지를 연 뒤 '오디오' 관련 탭/카테고리 링크를
+발견해 이동하고, 렌더된 DOM에서 상품 상세 링크를 추출한다.
 """
-import json
 import re
 
 from bs4 import BeautifulSoup
 
-from . import common
+from . import browser, common
 
-CANDIDATES = [
-    "https://store.kyobobook.co.kr/category/domestic/audio",
-    "https://store.kyobobook.co.kr/category/domestic/audio/best",
-    "https://store.kyobobook.co.kr/best/audio",
+BASE = "https://product.kyobobook.co.kr"
+HUB = "https://product.kyobobook.co.kr/bestseller/online"
+STORE_CANDIDATES = [
     "https://store.kyobobook.co.kr/bestseller/audio",
-    "https://product.kyobobook.co.kr/bestseller/audio",
-    "https://product.kyobobook.co.kr/category/bestseller/audio",
+    "https://store.kyobobook.co.kr/category/audio",
 ]
-
-TITLE_KEYS = ("title", "cmdtName", "prodName", "saleCmdtName", "name")
-
-
-def _walk(node, found: list, depth: int = 0):
-    if depth > 25 or found:
-        return
-    if isinstance(node, list) and len(node) >= 5:
-        if all(isinstance(x, dict) for x in node[:3]):
-            keys = set().union(*(x.keys() for x in node[:3]))
-            tk = next((k for k in TITLE_KEYS if k in keys), None)
-            if tk:
-                for i, x in enumerate(node, 1):
-                    pid = str(x.get("saleCmdtId") or x.get("cmdtId") or x.get("id") or "")
-                    found.append(common.make_row(
-                        rank=i, title=str(x.get(tk, "")),
-                        author=str(x.get("author") or x.get("authorName") or ""),
-                        publisher=str(x.get("publisher") or x.get("publisherName") or ""),
-                        product_id=pid,
-                        url=f"https://product.kyobobook.co.kr/detail/{pid}" if pid else "",
-                    ))
-                return
-    if isinstance(node, dict):
-        for v in node.values():
-            _walk(v, found, depth + 1)
-    elif isinstance(node, list):
-        for v in node:
-            _walk(v, found, depth + 1)
+DETAIL_RE = re.compile(r"/detail/(S\d+)")
 
 
-def _try_parse(html: str) -> list[dict]:
+def _parse(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "lxml")
-    # __NEXT_DATA__ 우선
-    script = soup.select_one("script#__NEXT_DATA__")
-    if script:
-        try:
-            data = json.loads(script.get_text())
-            found: list[dict] = []
-            _walk(data, found)
-            if found:
-                return found
-        except Exception:
-            pass
-    # HTML 셀렉터
-    for sel in ("li.prod_item", "li[data-product-id]", "ul.best_list > li"):
-        items = soup.select(sel)
-        rows: list[dict] = []
-        for item in items:
-            link = item.select_one("a[href*='/detail/']") or item.select_one("a")
-            name_el = item.select_one(".prod_name") or item.select_one(".name") or link
-            if not name_el:
-                continue
-            href = link.get("href", "") if link else ""
-            m = re.search(r"/detail/(S?\w+)", href)
-            rows.append(common.make_row(
-                rank=len(rows) + 1, title=name_el.get_text(),
-                product_id=m.group(1) if m else "", url=href,
-            ))
-        if rows:
-            return rows
-    return []
+    rows: list[dict] = []
+    seen: set[str] = set()
+    for a in soup.select("a[href*='/detail/']"):
+        href = a.get("href", "")
+        m = DETAIL_RE.search(href)
+        if not m or m.group(1) in seen:
+            continue
+        title = common.clean(a.get_text())
+        if len(title) < 2:
+            continue
+        seen.add(m.group(1))
+        rows.append(common.make_row(
+            rank=len(rows) + 1, title=title, product_id=m.group(1),
+            url=href if href.startswith("http") else BASE + href,
+        ))
+    return rows
 
 
 def crawl_audiobook() -> list[dict]:
     errors = []
-    for url in CANDIDATES:
+    # 1) 허브(종합 베스트)에서 '오디오북' 탭 링크 발견
+    try:
+        html = browser.render(HUB, wait_selector="a[href*='/detail/']")
+        tab = browser.find_nav_link(html, BASE, ["오디오북", "오디오"])
+    except Exception as e:
+        tab = None
+        errors.append(f"{HUB} → {e}")
+
+    for url in [u for u in [tab, *STORE_CANDIDATES] if u]:
         try:
-            resp = common.fetch(url)
+            html = browser.render(url, wait_selector="a[href*='/detail/']")
         except Exception as e:
             errors.append(f"{url} → {e}")
             continue
-        rows = _try_parse(resp.text)
-        if rows:
+        rows = _parse(html)
+        if len(rows) >= 10:
             return rows
-        common.save_snapshot(f"kyobo_sam_{url.rstrip('/').split('/')[-1]}.html", resp.text)
-        errors.append(f"{url} → 응답 받았으나 파싱 0건")
+        common.save_snapshot(f"kyobo_sam_{url.rstrip('/').split('/')[-1]}.html", html)
+        errors.append(f"{url} → 파싱 {len(rows)}건")
+
     raise RuntimeError(
-        "교보 오디오북 차트: 모든 URL 실패. store.kyobobook.co.kr 경로 변경 또는 "
-        "로그인 장벽 가능성. 스냅샷 확인 후 URL 재탐색 필요. 시도: " + " | ".join(errors)
+        "교보 오디오북: 오디오 탭 발견/렌더 모두 실패 — 로그인 장벽 가능성. "
+        "시도: " + " | ".join(errors)
     )
 
 
 JOBS = [
-    common.ChartJob("kyobo_sam", "audiobook_best", "audiobook", crawl_audiobook),
+    common.ChartJob("kyobo_sam", "audiobook_best", "audiobook", crawl_audiobook, experimental=True),
 ]

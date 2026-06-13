@@ -1,3 +1,5 @@
 requests>=2.31
 beautifulsoup4>=4.12
 lxml>=5.0
+# JS 렌더링/봇 차단 사이트(교보·윌라·밀리)용. CI에서 `playwright install chromium` 필요.
+playwright>=1.44
