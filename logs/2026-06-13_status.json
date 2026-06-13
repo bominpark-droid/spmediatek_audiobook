@@ -1,12 +1,13 @@
 {
   "date": "2026-06-13",
-  "ok": 3,
-  "failed": 7,
+  "ok": 4,
+  "failed": 6,
   "results": [
     {
       "job": "aladin/ebook_best",
-      "ok": false,
-      "error": "도서 블록(div.ss_book_box)을 찾지 못함 — 페이지 구조 변경 의심 (page=1)"
+      "ok": true,
+      "rows": 340,
+      "file": "data/2026/06/2026-06-13_aladin_ebook.csv"
     },
     {
       "job": "yes24/general_best",
@@ -23,12 +24,12 @@
     {
       "job": "kyobo/general_best",
       "ok": false,
-      "error": "도서 블록(li.prod_item)을 찾지 못함 — JS 렌더링 전환 또는 구조 변경 의심"
+      "error": "교보 general: __NEXT_DATA__ 및 HTML 모두 파싱 실패 (https://product.kyobobook.co.kr/bestseller/online) — 스냅샷 확인 후 JS 렌더링(Playwright) 도입 여부 결정 필요"
     },
     {
       "job": "kyobo/ebook_best",
       "ok": false,
-      "error": "404 Client Error: Not Found for url: https://product.kyobobook.co.kr/bestseller/ebook?page=1&per=50"
+      "error": "교보 전자책 베스트: 모든 URL 실패 — URL 경로 재탐색 필요. 시도: https://product.kyobobook.co.kr/bestseller/eBook → 404 Client Error: Not Found for url: https://product.kyobobook.co.kr/bestseller/eBook | https://product.kyobobook.co.kr/bestseller/e-book → 404 Client Error: Not Found for url: https://product.kyobobook.co.kr/bestseller/e-book | https://product.kyobobook.co.kr/bestseller/online?saleCmdtClstCode=004 → 응답 받았으나 파싱 0건 | https://product.kyobobook.co.kr/bestseller/online?type=ebook → 응답 받았으나 파싱 0건 | https://product.kyobobook.co.kr/bestseller/ → 404 Client Error: Not Found for url: https://product.kyobobook.co.kr/bestseller/"
     },
     {
       "job": "audible_us/best_sellers",
@@ -39,22 +40,22 @@
     {
       "job": "kyobo_sam/audiobook_best",
       "ok": false,
-      "error": "교보 sam 오디오북 차트 접근 실패 — 로그인 장벽 또는 URL 변경 가능성. 스냅샷 확인 후 대체 경로 결정 필요. 시도 내역: https://sam.kyobobook.co.kr/best/audiobook → 404 Client Error: Not Found for url: https://sam.kyobobook.co.kr/best/audiobook | https://product.kyobobook.co.kr/bestseller/audio → 404 Client Error: Not Found for url: https://product.kyobobook.co.kr/bestseller/audio | https://product.kyobobook.co.kr/category/best/audio → 404 Client Error: Not Found for url: https://store.kyobobook.co.kr/category/domestic/audio/home"
+      "error": "교보 오디오북 차트: 모든 URL 실패. store.kyobobook.co.kr 경로 변경 또는 로그인 장벽 가능성. 스냅샷 확인 후 URL 재탐색 필요. 시도: https://store.kyobobook.co.kr/category/domestic/audio → 404 Client Error: Not Found for url: https://store.kyobobook.co.kr/category/domestic/audio | https://store.kyobobook.co.kr/category/domestic/audio/best → 404 Client Error: Not Found for url: https://store.kyobobook.co.kr/category/domestic/audio/best | https://store.kyobobook.co.kr/best/audio → 404 Client Error: Not Found for url: https://store.kyobobook.co.kr/best/audio | https://store.kyobobook.co.kr/bestseller/audio → 404 Client Error: Not Found for url: https://store.kyobobook.co.kr/bestseller/audio | https://product.kyobobook.co.kr/bestseller/audio → 404 Client Error: Not Found for url: https://product.kyobobook.co.kr/bestseller/audio | https://product.kyobobook.co.kr/category/bestseller/audio → 404 Client Error: Not Found for url: https://store.kyobobook.co.kr/category/domestic/audio/home"
     },
     {
       "job": "welaaa/audiobook_best",
       "ok": false,
-      "error": "윌라 오디오북 차트 파싱 실패 — JS 렌더링 필요 가능성(Playwright 검토). 시도 내역: https://www.welaaa.com/audiobook/best → 403 Client Error: Forbidden for url: https://www.welaaa.com/audiobook/best | https://www.welaaa.com/best → 403 Client Error: Forbidden for url: https://www.welaaa.com/best | https://www.welaaa.com/category/audiobook → 403 Client Error: Forbidden for url: https://www.welaaa.com/category/audiobook"
+      "error": "윌라 오디오북 차트: 모든 URL 접근 실패 또는 파싱 0건. 강화된 브라우저 헤더로도 403 지속 시 Playwright(JS 렌더링) 도입 필요. 시도 내역: https://www.welaaa.com/audiobook/ranking → 404 Client Error: Not Found for url: https://www.welaaa.com/audiobook/ranking | https://www.welaaa.com/ranking → 404 Client Error: Not Found for url: https://www.welaaa.com/ranking | https://www.welaaa.com/audiobook/best → 404 Client Error: Not Found for url: https://www.welaaa.com/audiobook/best | https://m.welaaa.com/audiobook/best → HTTPSConnectionPool(host='m.welaaa.com', port=443): Max retries exceeded with url: /audiobook/best (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.welaaa.com', port=443) at 0x7f12c2cf1210>, 'Connection to m.welaaa.com timed out. (connect timeout=25)')) | https://m.welaaa.com/ranking → HTTPSConnectionPool(host='m.welaaa.com', port=443): Max retries exceeded with url: /ranking (Caused by ConnectTimeoutError(<HTTPSConnection(host='m.welaaa.com', port=443) at 0x7f12c2cf22d0>, 'Connection to m.welaaa.com timed out. (connect timeout=25)')) | https://www.welaaa.com/category/audiobook → 404 Client Error: Not Found for url: https://www.welaaa.com/category/audiobook"
     },
     {
       "job": "millie/ebook_best",
       "ok": false,
-      "error": "밀리의서재 ebook 차트 접근 실패 — 앱 전용/JS 렌더링 가능성. 스냅샷 확인 후 대안(모바일 웹·공개 API·대체 차트) 결정 필요. 시도 내역: https://www.millie.co.kr/v3/bestseller → 응답은 받았으나 목록 파싱 0건 | https://millie.co.kr/v3/bestseller → 응답은 받았으나 목록 파싱 0건"
+      "error": "밀리의서재 ebook: 내부 API 및 HTML 파싱 모두 실패. 앱 전용 인증(토큰) 필요 가능성 — 공개 API 또는 대체 차트 결정 필요. 시도: https://www.millie.co.kr/v3/api/bestseller?genre=all&page=1&size=50 → 응답(200) 파싱 0건 | https://www.millie.co.kr/v3/bestseller?format=json → 응답(200) 파싱 0건 | https://api.millie.co.kr/v2/bestseller?type=ebook&size=50 → 404 Client Error: Not Found for url: https://api.millie.co.kr/v2/bestseller?type=ebook&size=50 | https://www.millie.co.kr/v3/bestseller → 응답(200) 파싱 0건 | https://m.millie.co.kr/v3/bestseller → HTTPSConnectionPool(host='m.millie.co.kr', port=443): Max retries exceeded with url: /v3/bestseller (Caused by NameResolutionError(\"HTTPSConnection(host='m.millie.co.kr', port=443): Failed to resolve 'm.millie.co.kr' ([Errno -2] Name or service not known)\"))"
     },
     {
       "job": "millie/audiobook_best",
       "ok": false,
-      "error": "밀리의서재 audiobook 차트 접근 실패 — 앱 전용/JS 렌더링 가능성. 스냅샷 확인 후 대안(모바일 웹·공개 API·대체 차트) 결정 필요. 시도 내역: https://www.millie.co.kr/v3/bestseller/audiobook → 응답은 받았으나 목록 파싱 0건 | https://millie.co.kr/v3/bestseller/audiobook → 응답은 받았으나 목록 파싱 0건"
+      "error": "밀리의서재 audiobook: 내부 API 및 HTML 파싱 모두 실패. 앱 전용 인증(토큰) 필요 가능성 — 공개 API 또는 대체 차트 결정 필요. 시도: https://www.millie.co.kr/v3/api/bestseller/audiobook?page=1&size=50 → 응답(200) 파싱 0건 | https://www.millie.co.kr/v3/bestseller/audiobook?format=json → 응답(200) 파싱 0건 | https://api.millie.co.kr/v2/bestseller?type=audiobook&size=50 → 404 Client Error: Not Found for url: https://api.millie.co.kr/v2/bestseller?type=audiobook&size=50 | https://www.millie.co.kr/v3/bestseller/audiobook → 응답(200) 파싱 0건 | https://m.millie.co.kr/v3/bestseller/audiobook → HTTPSConnectionPool(host='m.millie.co.kr', port=443): Max retries exceeded with url: /v3/bestseller/audiobook (Caused by NameResolutionError(\"HTTPSConnection(host='m.millie.co.kr', port=443): Failed to resolve 'm.millie.co.kr' ([Errno -2] Name or service not known)\"))"
     }
   ]
 }
