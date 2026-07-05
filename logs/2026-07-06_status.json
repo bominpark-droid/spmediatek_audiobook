@@ -1,0 +1,75 @@
+{
+  "date": "2026-07-06",
+  "ok": 6,
+  "failed": 4,
+  "prod_failed": 0,
+  "exp_failed": 4,
+  "results": [
+    {
+      "job": "aladin/ebook_best",
+      "ok": true,
+      "rows": 319,
+      "experimental": false,
+      "file": "data/2026/07/2026-07-06_aladin_ebook.csv"
+    },
+    {
+      "job": "yes24/general_best",
+      "ok": true,
+      "rows": 100,
+      "experimental": false,
+      "file": "data/2026/07/2026-07-06_yes24_general.csv"
+    },
+    {
+      "job": "yes24/ebook_best",
+      "ok": true,
+      "rows": 100,
+      "experimental": false,
+      "file": "data/2026/07/2026-07-06_yes24_ebook.csv"
+    },
+    {
+      "job": "kyobo/general_best",
+      "ok": true,
+      "rows": 20,
+      "experimental": true,
+      "file": "data/2026/07/2026-07-06_kyobo_general.csv"
+    },
+    {
+      "job": "kyobo/ebook_best",
+      "ok": true,
+      "rows": 20,
+      "experimental": true,
+      "file": "data/2026/07/2026-07-06_kyobo_ebook.csv"
+    },
+    {
+      "job": "audible_us/best_sellers",
+      "ok": true,
+      "rows": 50,
+      "experimental": false,
+      "file": "data/2026/07/2026-07-06_audible_us_bestsellers.csv"
+    },
+    {
+      "job": "kyobo_sam/audiobook_best",
+      "ok": false,
+      "experimental": true,
+      "error": "교보 오디오북: 오디오 탭 발견/렌더 모두 실패 — 로그인 장벽 가능성. 시도: https://store.kyobobook.co.kr/bestseller/audio → 파싱 0건 | https://store.kyobobook.co.kr/category/audio → 파싱 0건"
+    },
+    {
+      "job": "welaaa/audiobook_best",
+      "ok": false,
+      "experimental": true,
+      "error": "윌라 오디오북: 렌더링 후에도 실패 — 시도: https://www.welaaa.com/audiobook/ranking → 파싱 0건 | https://www.welaaa.com/ranking → 파싱 0건 | https://www.welaaa.com/audiobook → 파싱 0건 | https://www.welaaa.com → 파싱 0건"
+    },
+    {
+      "job": "millie/ebook_best",
+      "ok": false,
+      "experimental": true,
+      "error": "밀리 전자책: 렌더링 후에도 파싱 실패 — 스냅샷 확인 필요"
+    },
+    {
+      "job": "millie/audiobook_best",
+      "ok": false,
+      "experimental": true,
+      "error": "밀리 오디오북: 렌더링 후에도 실패 — 시도: https://www.millie.co.kr/v3/bestseller/audiobook → 파싱 0건 | https://www.millie.co.kr/v3/bestseller?category=audiobook → 파싱 0건"
+    }
+  ]
+}
