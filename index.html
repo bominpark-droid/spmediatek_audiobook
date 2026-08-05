@@ -86,6 +86,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0d0d0d;color:#e8e6df;min-
 .prog-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#3B8BD4,#4ade80);transition:width 0.4s}
 .prog-pct{font-size:11px;color:#555;min-width:32px;text-align:right}
 
+/* 컴팩트 카드 헤더 — 내부 관리 전용 (한 줄 요약) */
+.card-head.compact{padding:12px 16px;display:grid;grid-template-columns:minmax(0,1fr) 175px 305px 12px;gap:14px;align-items:center}
+.ch-main{display:flex;align-items:baseline;gap:7px;min-width:0;flex:1 1 220px}
+.ch-main .book-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch-stage{display:flex;flex-direction:column;gap:5px;flex:0 0 auto;min-width:150px}
+.ch-stage .stage-text{font-size:12px;font-weight:600;color:#bbb;white-space:nowrap}
+.stepseg{display:flex;gap:2px}
+.stepseg i{width:11px;height:5px;border-radius:2px;background:#242424}
+.stepseg i.sg-on{background:#3B8BD4}
+.stepseg i.sg-now{background:#4ade80}
+.ch-chips{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+.ch-caret{font-size:11px;color:#555;flex-shrink:0;width:12px;text-align:center}
+
 /* 칩 */
 .chip{font-size:11px;padding:3px 9px;border-radius:20px;white-space:nowrap}
 .chip-red{background:#2d1515;color:#f87171}
@@ -211,6 +224,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0d0d0d;color:#e8e6df;min-
   .ds-title{font-size:10px}
   .card-head{padding:12px}
   .card-title{font-size:14px}
+
+  /* 컴팩트 헤더 모바일 — 그리드 해제, 두 줄 배치 */
+  .card-head.compact{display:flex;flex-wrap:wrap;gap:8px}
+  .ch-main{flex:1 1 100%}
+  .ch-stage{min-width:0}
+  .ch-chips{margin-left:auto;justify-content:flex-end}
 
   /* 팝업 모바일 대응 */
   .detail-popup{max-width:92vw !important;max-height:85vh}
@@ -733,8 +752,9 @@ function hasPubPending(p) { return PUB_CHECKS.some(f=>p[f.key]!=='완료'); }
 function pendingCnt(p) { return PUB_CHECKS.filter(f=>p[f.key]!=='완료').length; }
 function cardClass(p) {
   if(p.currentStep>=10) return 'done-card';
-  const d=getDday(p.deadline);
-  if(d!==null&&d<=3) return 'urgent';
+  // 상단 '긴급' 카운트와 동일 기준: 납품 마감(없으면 계약 마감) D-5 이내
+  const d=getDday(p.SP_납품완료_마감일||p.deadline);
+  if(d!==null&&d<=5) return 'urgent';
   if(hasPubPending(p)) return 'warn';
   return 'ok';
 }
@@ -839,11 +859,19 @@ function renderInternal() {
     case 'done':   fps=projects.filter(p=>p.currentStep>=10); break;
   }
 
+  // 마감 임박순 정렬: 급한 것 위로, 마감일 없는 건 그 다음, 완료는 맨 아래
+  const rank=p=>{
+    if(p.currentStep>=10) return 1e9;
+    const dd=getDday(p.SP_납품완료_마감일||p.deadline);
+    return dd===null?1e8:dd;
+  };
+  fps=fps.slice().sort((a,b)=>rank(a)-rank(b));
+
   const list=document.getElementById('internal-list');
   if(!fps.length){list.innerHTML='<div class="empty">해당하는 프로젝트가 없어요</div>';return;}
 
   list.innerHTML=fps.map(p=>{
-    const d=getDday(p.deadline);
+    const d=getDday(p.SP_납품완료_마감일||p.deadline);
     const pct=Math.round((p.currentStep/10)*100);
     const step=STEPS[p.currentStep-1]||STEPS[9];
     const pending=pendingCnt(p);
@@ -851,31 +879,24 @@ function renderInternal() {
     const spDue=SP_DEADLINES.find(s=>s.step===p.currentStep);
     const spDueVal=spDue?getDday(p[spDue.key]):null;
 
+    const isDone=p.currentStep>=10;
     return `<div class="pcard ${cardClass(p)}">
-      <div class="card-head" onclick="toggleExpand('${p.id}')">
-        <div class="card-head-left">
-          <div class="card-title-row">
-            <span class="pub-name">${p.pub}</span>
-            ${p.pubContactName?`<span style="font-size:11px;color:#60a5fa;margin-left:4px">(${p.pubContactName})</span>`:''}
-            <span class="book-name">《${p.book}》</span>
-          </div>
-          <div class="card-meta-row">
-            <span class="stage-text">${p.currentStep<10?`${p.currentStep}단계 · ${step.name}`:'✅ 완료'}</span>
-            ${p.currentStep<10?`<span class="stage-summary">${step.summary}</span>`:''}
-            ${spDue&&spDueVal!==null?`<span class="chip ${ddayInlineClass(spDueVal)}" style="font-size:10px">SP마감 ${ddayTxt(spDueVal)}</span>`:''}
-          </div>
+      <div class="card-head compact" onclick="toggleExpand('${p.id}')">
+        <div class="ch-main">
+          <span class="pub-name">${p.pub}</span>
+          <span class="book-name">《${p.book}》</span>
         </div>
-        <div class="card-head-right">
-          ${(p.SP_납품완료_마감일||p.deadline)?`<span class="dday-chip ${ddayChipClass(d)}" title="납품 마감일">납품 ${ddayTxt(d)}</span>`:''}
-          <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
-            ${pending>0?`<span class="chip chip-amber">📌 ${pending}건</span>`:'<span class="chip chip-green">✅ 출판사</span>'}
-            ${p.engineer?`<span class="chip chip-purple">🎙 ${p.engineer}</span>`:''}
-          </div>
+        <div class="ch-stage" title="진행률 ${pct}%">
+          <span class="stage-text">${isDone?'✅ 완료':`${p.currentStep}. ${step.name}`}</span>
+          <div class="stepseg">${STEPS.map(s=>`<i class="${s.id<p.currentStep||isDone?'sg-on':s.id===p.currentStep?'sg-now':''}"></i>`).join('')}</div>
         </div>
-      </div>
-      <div class="prog-wrap">
-        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
-        <span class="prog-pct">${pct}%</span>
+        <div class="ch-chips">
+          ${spDue&&spDueVal!==null&&spDueVal<=7?`<span class="chip ${ddayInlineClass(spDueVal)}">SP ${ddayTxt(spDueVal)}</span>`:''}
+          ${pending>0&&!isDone?`<span class="chip chip-amber">📌 ${pending}건</span>`:''}
+          ${p.engineer?`<span class="chip chip-purple">🎙 ${p.engineer}</span>`:''}
+          ${!isDone&&(p.SP_납품완료_마감일||p.deadline)?`<span class="dday-chip ${ddayChipClass(d)}" title="납품 마감일">납품 ${ddayTxt(d)}</span>`:''}
+        </div>
+        <span class="ch-caret">${isExp?'▾':'▸'}</span>
       </div>
       <div class="card-detail ${isExp?'open':''}">
         <div class="detail-grid">
@@ -921,6 +942,7 @@ function renderInternal() {
             <div class="ds-title">
               출판사 확인 항목
               <span class="cnt chip ${pending>0?'chip-amber':'chip-green'}">${pending>0?`${pending}건 미완료`:'모두 완료'}</span>
+              ${p.pubContactName?`<span style="font-size:11px;color:#60a5fa;font-weight:400;margin-left:auto">담당 ${p.pubContactName}</span>`:''}
             </div>
             <div class="check-item" style="flex-direction:column;align-items:flex-start">
               ${PUB_CHECKS.map(f=>{
