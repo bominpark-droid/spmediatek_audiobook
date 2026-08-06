@@ -1,0 +1,2944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  * { box-sizing:border-box; margin:0; }
+  :root { --nv:#1f3b57; --nvL:#eef3f8; --nvLine:#d6e0ea; --red:#b23a2f; --redL:#fdf0ee; --bd:#e4e6ea; }
+  body { font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif; background:#f4f6f8; color:#151a20; }
+
+  .app { display:flex; min-height:100vh; }
+  .side { width:200px; flex:none; background:var(--nv); color:#fff; padding:22px 12px 16px;
+          position:sticky; top:0; height:100vh; display:flex; flex-direction:column; }
+  .side .brand { font-size:10.5px; letter-spacing:.16em; color:#8fa5ba; font-weight:800; padding:0 10px; }
+  .side .who { font-size:15px; font-weight:800; color:#fff; padding:5px 10px 0; }
+  .side .whosub { font-size:11px; color:#8fa5ba; padding:2px 10px 0; }
+  nav.menu { margin-top:18px; display:flex; flex-direction:column; gap:3px; }
+  nav.menu a { display:flex; align-items:center; gap:9px; padding:10px 11px; border-radius:9px;
+               color:#c3d0dc; font-size:13.5px; font-weight:600; text-decoration:none; cursor:pointer; }
+  nav.menu a svg { width:16px; height:16px; flex:none; }
+  nav.menu a.on { background:rgba(255,255,255,.15); color:#fff; font-weight:800; }
+  nav.menu a:hover { color:#fff; }
+  .badge { margin-left:auto; min-width:19px; text-align:center; font-size:11px; font-weight:800;
+           padding:1px 6px; border-radius:10px; background:#d8574a; color:#fff; }
+  .badge.soft { background:rgba(255,255,255,.22); color:#fff; }
+  .side .foot { margin-top:auto; padding:0 4px; }
+  .side .foot button { width:100%; padding:10px; font-size:12.5px; font-weight:800; border-radius:9px;
+                       border:1px solid rgba(255,255,255,.35); background:transparent; color:#fff; cursor:pointer; font-family:inherit; }
+  .side .foot .cap { font-size:10.5px; color:#7e93a8; line-height:1.6; margin-top:8px; padding:0 4px; }
+
+  .main { flex:1; min-width:0; padding:24px 18px 90px; }
+  .inner { max-width:900px; margin:0 auto; }
+  h1.tt { font-size:20px; font-weight:800; letter-spacing:-.01em; }
+  p.greet { font-size:13px; color:#5f6b78; margin-top:6px; line-height:1.7; }
+  h2.sec { font-size:12.5px; letter-spacing:.09em; color:var(--nv); font-weight:800; margin:24px 0 10px; }
+  h2.sec:first-child { margin-top:8px; }
+  h2.sec .cnt { color:#98a4b0; margin-left:5px; letter-spacing:0; }
+
+  .card { background:#fff; border:1px solid var(--bd); border-radius:14px; padding:15px 16px;
+          box-shadow:0 1px 2px rgba(20,35,55,.05); }
+  .card + .card { margin-top:10px; }
+  .empty { padding:22px 14px; text-align:center; color:#8a94a0; font-size:13px; background:#fff; border:1px dashed #ccd2d9; border-radius:14px; }
+  .banner { background:#fbf7ef; border:1px solid #eee3cf; border-radius:12px; padding:12px 14px;
+            font-size:12.5px; line-height:1.7; color:#6d5a33; margin-bottom:12px; }
+
+  /* 홈 지표 카드 */
+  .metrics { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:9px; }
+  .metric { background:#fff; border:1px solid var(--bd); border-radius:13px; padding:13px 14px; cursor:pointer;
+            box-shadow:0 1px 2px rgba(20,35,55,.05); }
+  .metric:hover { border-color:#b9c5d1; }
+  .metric b { display:block; font-size:23px; font-weight:800; color:var(--nv); }
+  .metric.warn b { color:var(--red); }
+  .metric span { display:block; font-size:12px; color:#7c8792; font-weight:700; margin-top:3px; }
+  .duerow { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--bd);
+            border-radius:12px; padding:11px 14px; margin-top:8px; cursor:pointer; }
+  .duerow:hover { border-color:#b9c5d1; }
+  .duerow b { font-size:13.5px; flex:1; min-width:0; }
+  .duerow .dd { font-size:12px; font-weight:800; padding:4px 10px; border-radius:8px; background:#f0f2f5; color:#5f6b78; }
+  .duerow .dd.soon { background:var(--redL); color:var(--red); }
+  /* 홈: 전체 진행 현황 */
+  .prow2 { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--bd);
+           border-radius:12px; padding:10px 14px; margin-top:8px; cursor:pointer; flex-wrap:wrap; }
+  .prow2:hover { border-color:#b9c5d1; }
+  .prow2 .bt { font-size:13.5px; font-weight:800; flex:1; min-width:150px; }
+  .prow2 .bar { flex:2; min-width:130px; height:9px; background:#e7ebf0; border-radius:5px; overflow:hidden; display:block; }
+  .prow2 .bar i { display:block; height:100%; background:var(--nv); }
+  .prow2.done10 .bar i { background:#1d6b2a; }
+  .prow2 .stepc { font-size:11px; font-weight:800; color:#5f6b78; min-width:90px; }
+
+  /* 공통 칩·필 */
+  .chip { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; border:1px solid #d5dae0; color:#4c5866; background:#fff; white-space:nowrap; }
+  .chip.navy { background:var(--nv); border-color:var(--nv); color:#fff; }
+  .chip.gray { background:#eef0f2; border-color:#e2e5e9; color:#7c8792; }
+  .chip.redln { background:var(--redL); border-color:#ecccc5; color:var(--red); }
+  .pill { font-size:11.5px; font-weight:700; padding:2px 9px; border-radius:10px; background:#e8ecf1; color:#41546b; }
+  .p-wait { background:#fde7e9; color:#b23a2f; }
+  .p-rec  { background:#fdf1d7; color:#8a5a00; }
+  .p-up   { background:#e3e6f5; color:#3f4a7e; }
+  .p-done { background:#e2f2e4; color:#1d6b2a; }
+  .p-eng  { background:#f1e7f5; color:#6a1b9a; }
+  .p-pub  { background:#e3ecf9; color:#1f3b57; }
+  .p-int  { background:#efe9f7; color:#5b3f8a; }
+
+  /* 도서 관리 */
+  .bhead { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .bhead .tt { font-size:16px; font-weight:800; }
+  .bhead .sub { font-size:12px; color:#7c8792; font-weight:600; }
+
+  /* v2.0 — 도서명 타이포 (출판사 작게·연하게 / 도서명 크게·진하게) */
+  .btitle { display:inline-flex; align-items:baseline; gap:7px; min-width:0; }
+  .btitle .pb { font-size:13.5px; font-weight:800; color:#1f3b57; letter-spacing:-.01em; white-space:nowrap;
+                background:#eef3f9; border:1px solid #d8e3ee; border-radius:6px; padding:2px 7px; }
+  .btitle .nm { font-size:16.5px; font-weight:800; color:#16283c; letter-spacing:-.015em; }
+  .btitle .nm .q { color:#c3ccd6; font-weight:600; }
+  .sumrow .btitle .nm, .prow2 .btitle .nm { font-size:15px; }
+
+  /* v2.0 — 접힌 줄 요약(성우·러닝타임) */
+  .bmeta { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:6px;
+           font-size:12px; color:#78838f; font-weight:600; line-height:1.5; }
+  .bmeta .k { color:#a6b0bb; font-weight:800; font-size:10.5px; letter-spacing:.03em; }
+  .bmeta .rt { font-weight:800; color:#41546b; }
+  .bmeta .dot { color:#ccd3da; }
+
+  /* v2.0 — 그룹(차수) 헤더 */
+  .grphd { display:flex; align-items:center; gap:9px; margin:20px 2px 8px; flex-wrap:wrap; }
+  .grphd h3 { font-size:13px; font-weight:800; color:var(--nv); letter-spacing:-.01em; }
+  .grphd .cnt { font-size:11.5px; font-weight:800; color:#96a2ae; }
+  .grphd .ln { flex:1; height:1px; background:linear-gradient(90deg,#dfe4ea,transparent); min-width:20px; }
+
+  /* v2.0 — 순서 변경 버튼 */
+  .ord { display:flex; flex-direction:column; gap:2px; margin-right:2px; }
+  .ord button { width:22px; height:16px; padding:0; font-size:9px; line-height:1;
+                border:1px solid #dde2e8; background:#fff; color:#8a94a0; border-radius:5px; cursor:pointer; }
+  .ord button:hover { background:#f2f5f8; color:var(--nv); border-color:#c3ccd6; }
+  .ord button:disabled { opacity:.3; cursor:default; }
+
+  /* v2.2 — 그룹 필터 탭 */
+  .gtabs { display:flex; gap:6px; flex-wrap:wrap; margin:12px 0 4px;
+           border-bottom:1.5px solid #e6eaee; padding-bottom:0; }
+  .gtab { padding:9px 15px; font-size:13px; font-weight:800; color:#8a96a3; cursor:pointer;
+          background:none; border:0; border-bottom:2.5px solid transparent; margin-bottom:-1.5px;
+          font-family:inherit; white-space:nowrap; }
+  .gtab:hover { color:var(--nv); }
+  .gtab.on { color:var(--nv); border-bottom-color:var(--nv); }
+  .gtab .c { font-size:11px; font-weight:800; color:#aab4bf; margin-left:5px; }
+  .gtab.on .c { color:var(--nv); }
+
+  /* v2.2 — 시트 바로가기 */
+  .shortcuts { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .shortcuts a { display:inline-flex; align-items:center; gap:6px; padding:9px 14px; font-size:12.5px;
+                 font-weight:800; color:#1f3b57; background:#fff; border:1px solid #d8e3ee;
+                 border-radius:9px; text-decoration:none; }
+  .shortcuts a:hover { background:#eef3f9; border-color:#b9cbe0; }
+
+  /* v2.2 — 확인 필요 알림 */
+  .alrt { display:flex; align-items:flex-start; gap:9px; padding:11px 13px; margin-bottom:7px;
+          background:#fff; border:1px solid #e6eaee; border-left-width:4px; border-radius:10px; cursor:pointer; }
+  .alrt:hover { background:#fafbfc; }
+  .alrt.k-pub { border-left-color:#1f6feb; }
+  .alrt.k-rec { border-left-color:#2f7d32; }
+  .alrt.k-wait { border-left-color:#c0392b; }
+  .alrt.k-due { border-left-color:#e08600; }
+  .alrt .tg { font-size:10px; font-weight:800; padding:3px 7px; border-radius:5px; white-space:nowrap; margin-top:1px; }
+  .k-pub .tg { background:#e8f0fe; color:#1f6feb; }
+  .k-rec .tg { background:#e8f5e9; color:#2f7d32; }
+  .k-wait .tg { background:#fdeceb; color:#c0392b; }
+  .k-due .tg { background:#fff4e0; color:#b06a00; }
+  .alrt .bd { min-width:0; flex:1; }
+  .alrt .t1 { font-size:13px; font-weight:800; color:#22303f; line-height:1.45; }
+  .alrt .t2 { font-size:11.5px; color:#8a94a0; margin-top:2px; line-height:1.5; }
+  .fldlab { font-size:10.5px; color:#98a1ab; font-weight:800; margin:11px 0 4px; letter-spacing:.03em; }
+  .frow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  select, input[type=text] { padding:9px 10px; font-size:13.5px; border:1px solid #cfd6dd; border-radius:9px;
+                             font-family:inherit; background:#fff; color:#151a20; }
+  select:focus, input:focus, textarea:focus { outline:none; border-color:var(--nv); }
+  textarea { width:100%; padding:9px 10px; font-size:13.5px; border:1px solid #cfd6dd; border-radius:9px;
+             font-family:inherit; min-height:52px; resize:vertical; line-height:1.6; }
+  button { padding:9px 12px; font-size:12.5px; font-weight:800; border-radius:9px; border:1px solid #cfd6dd;
+           background:#fff; color:#3c4652; cursor:pointer; font-family:inherit; }
+  button.primary { background:var(--nv); border-color:var(--nv); color:#fff; }
+  button.small { padding:6px 10px; font-size:12px; font-weight:700; }
+  button:disabled { opacity:.45; cursor:default; }
+  .savemark { font-size:12px; font-weight:800; }
+  .cks { display:flex; gap:6px; flex-wrap:wrap; }
+  .ckc { font-size:11.5px; font-weight:800; padding:5px 11px; border-radius:16px; cursor:pointer; border:1px solid; user-select:none; }
+  .ckc.on { background:#1d6b2a; border-color:#1d6b2a; color:#fff; }
+  .ckc.off { background:var(--redL); border-color:#ecccc5; color:var(--red); }
+  .ckc.off.od { background:var(--red); border-color:var(--red); color:#fff; }
+  .ckc.mid { background:#fdf1d7; border-color:#f0dcae; color:#8a5a00; }
+  .ckc.busy { opacity:.5; }
+  .ckc small { font-weight:700; opacity:.75; margin-left:4px; }
+  a.linkbtn { display:inline-block; font-size:12px; font-weight:700; color:var(--nv); text-decoration:none;
+              border:1px solid #c2cdd8; padding:6px 11px; border-radius:8px; background:#fff; }
+  .msg { margin-top:8px; font-size:12.5px; color:#5f6b78; line-height:1.6; }
+  .msg.ok { color:#1d6b2a; font-weight:800; }
+  .msg.bad { color:var(--red); font-weight:800; }
+  details.fold { margin-top:11px; border:1px solid #e9ebee; border-radius:11px; background:#fafbfc; }
+  details.fold > summary { list-style:none; cursor:pointer; padding:10px 13px; font-size:12.5px; font-weight:800; color:var(--nv); }
+  details.fold > summary::-webkit-details-marker { display:none; }
+  details.fold .fin { padding:0 13px 12px; }
+  .castline { display:flex; align-items:center; gap:7px; flex-wrap:wrap; font-size:13px; margin-top:7px; }
+  .castline .role { font-size:11.5px; font-weight:800; padding:2px 9px; border-radius:10px; background:#f1e7f5; color:#6a1b9a; }
+  .method { font-size:11.5px; color:#98a1ab; }
+
+  /* 새 도서 추가 */
+  .addgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:8px; margin-top:4px; }
+  .addgrid label { display:block; font-size:10.5px; color:#98a1ab; font-weight:800; margin-bottom:3px; }
+  .addgrid input, .addgrid select { width:100%; }
+
+  /* 수정·검수 */
+  .stats { display:flex; gap:8px; flex-wrap:wrap; }
+  .stat { flex:1; min-width:92px; background:#fff; border:1px solid var(--bd); border-radius:12px; padding:10px 12px; text-align:center; }
+  .stat b { display:block; font-size:19px; color:var(--nv); font-weight:800; }
+  .stat.warn b { color:var(--red); }
+  .stat span { font-size:11.5px; color:#8a94a0; font-weight:700; }
+  .fbar { display:flex; gap:7px; flex-wrap:wrap; margin:12px 0 10px; align-items:center; }
+  .fbar button.f { padding:7px 13px; border-radius:20px; font-size:12.5px; }
+  .fbar button.f.on { background:var(--nv); border-color:var(--nv); color:#fff; }
+  details.grp { background:#fff; border:1px solid var(--bd); border-radius:14px; margin-bottom:10px;
+                box-shadow:0 1px 2px rgba(20,35,55,.05); }
+  details.grp > summary { padding:13px 15px; cursor:pointer; list-style:none; }
+  details.grp > summary::-webkit-details-marker { display:none; }
+  .sumrow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .sumrow .tt { font-size:15px; font-weight:800; }
+  .sumrow .tt::before { content:'▸ '; color:#b7c0ca; font-weight:400; }
+  details.grp[open] .sumrow .tt::before { content:'▾ '; }
+  .ginner { padding:0 15px 14px; }
+  .item { background:#fafbfc; border:1px solid #e9ebee; border-radius:11px; padding:11px 12px; margin-top:9px; }
+  .row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .idb { font-size:12px; font-weight:800; padding:2px 9px; border-radius:10px; background:var(--nvL); color:var(--nv); }
+  .snippet { font-size:13.5px; margin-top:6px; line-height:1.6; }
+  .meta { font-size:12px; color:#8a94a0; margin-top:4px; }
+  .btns { display:flex; gap:6px; margin-top:9px; flex-wrap:wrap; }
+  button.v { border-color:#c2cdd8; color:var(--nv); }
+  button.v.sel { background:var(--nv); border-color:var(--nv); color:#fff; }
+  button.done { background:#1d6b2a; border-color:#1d6b2a; color:#fff; }
+  audio { width:100%; margin-top:8px; height:34px; }
+
+  .castsum { font-size:12.5px; color:#4c5866; margin-top:8px; padding:8px 11px; background:#f6f8fa; border-radius:9px; line-height:1.7; }
+  .duelab { font-size:12px; font-weight:800; color:#4c5866; min-width:118px; }
+  .duecur { font-size:12px; color:#8a94a0; min-width:86px; }
+  .adminmemo { margin-top:7px; padding:8px 11px; background:#fdf1d7; border:1px solid #f0dcae; border-radius:9px;
+               font-size:12.5px; font-weight:600; color:#8a5a00; line-height:1.55; }
+  .memobox { margin-top:8px; padding:9px 10px; background:#f6f8fa; border:1px dashed #ccd5de; border-radius:10px; }
+  .memobox textarea { min-height:44px; }
+  .tcbig { display:inline-block; margin-top:8px; padding:7px 14px; background:var(--nv); color:#fff; border-radius:9px;
+           font-size:15px; font-weight:800; letter-spacing:.03em; }
+  .chip.rtc { background:#eef3f9; color:#1f3b57; border-color:#c9d8e8; font-weight:800; }
+  .chip.music { background:#eef7ee; color:#1d5e22; border-color:#c3e0c4; }
+  button.small.okbtn { background:#eef7ee; border-color:#a9d3ab; color:#1d5e22; font-weight:800; }
+  .who { font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; }
+  .who.w-eng { background:#e8f0fe; color:#1a56b8; }
+  .who.w-rev { background:#f3e8fd; color:#7028b8; }
+  .who.w-pub { background:#fff1e0; color:#a8620a; }
+  .who.w-adm { background:#e7f6f4; color:#0d7a6c; }
+  /* v2.7 — 위치 정보 강조 · 오류 유형 빨간 배지 */
+  .locline { display:flex; gap:6px; flex-wrap:wrap; margin-top:7px; }
+  .locchip { display:inline-flex; align-items:center; gap:4px; padding:5px 10px;
+             background:#1f3b57; color:#fff; border-radius:7px;
+             font-size:13px; font-weight:800; }
+  .locchip .ic { font-size:12px; }
+  .pill.p-type { background:#fdeceb; color:#c0392b; border:1px solid #f2c4c0; font-weight:800; }
+  .fixnote { margin-top:8px; padding:9px 12px; background:#eef7ee; border:1px solid #c3e0c4;
+             border-radius:9px; font-size:12.5px; color:#1d5e22; line-height:1.55; }
+  .fixnote b { font-weight:800; }
+  iframe.finframe { width:100%; height:400px; border:0; border-radius:9px; background:#f0f2f5; margin-top:8px; display:block; }
+  .finwrap audio { width:100%; }
+  .finwrap { min-width:0; overflow:hidden; }
+  .rtblwrap { margin-top:9px; border:1px solid #e9ebee; border-radius:11px; overflow:hidden; overflow-x:auto; background:#fff; }
+  table.rtbl { width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.rtbl th { background:#f2f5f8; color:var(--nv); font-size:11.5px; text-align:left; padding:8px 10px; white-space:nowrap; }
+  table.rtbl td { padding:7px 10px; border-top:1px solid #f0f2f4; vertical-align:top; }
+
+  /* 파트너 */
+  .prow { background:#fff; border:1px solid var(--bd); border-radius:13px; padding:13px 15px; margin-top:9px;
+          box-shadow:0 1px 2px rgba(20,35,55,.05); }
+  .prow .r1 { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+  .prow .nm { font-size:15px; font-weight:800; }
+  .prow .pm { font-size:12px; color:#7c8792; margin-top:5px; line-height:1.7; word-break:break-all; }
+  .prow .pb { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  .acctline { margin-top:9px; padding:9px 12px; background:var(--nvL); border:1px solid var(--nvLine); border-radius:9px;
+              font-size:13px; font-weight:700; color:#28415c; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+  /* 캐스팅 */
+  .creq { display:flex; align-items:center; gap:9px; flex-wrap:wrap; padding:10px 0; border-top:1px solid #eff1f3; font-size:13px; }
+  .creq:first-of-type { border-top:0; }
+  .creq b { min-width:70px; }
+  .creq .cm { font-size:12px; color:#8a94a0; }
+
+  .note { font-size:12px; color:#98a1ab; margin-top:22px; line-height:1.8; }
+
+  /* v2.3 원고 패널 */
+  #msPanel { position:fixed; right:12px; top:12px; bottom:12px; width:min(44vw,700px); z-index:80; background:#fff;
+    border:1px solid var(--bd); border-radius:14px; box-shadow:0 10px 34px rgba(20,35,55,.25); display:none; flex-direction:column; overflow:hidden; }
+  #msPanel .mshead { display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid #edeff2;
+    font-size:12.5px; font-weight:800; color:var(--nv); }
+  #msPanel iframe { flex:1; width:100%; border:0; }
+  body.msopen #msPanel { display:flex; }
+  body.msopen .main { padding-right:calc(min(44vw,700px) + 28px); }
+  @media (max-width:1000px) { body.msopen #msPanel { left:12px; width:auto; } body.msopen .main { padding-right:16px; } }
+
+  /* v2.3 출결 */
+  .attbars { display:grid; gap:3px; margin-top:12px; align-items:end; }
+  .attbar { background:#e2e8ef; border-radius:3px 3px 0 0; min-height:5px; }
+  .attbar.on { background:#2f7d4f; }
+  .attlbl { font-size:10px; color:#98a1ab; text-align:center; margin-top:2px; min-height:12px; }
+
+  /* v1.8: 접기 화살표 (모든 details.fold 공통) */
+  details.fold > summary::before { content:'▸  '; color:#8fa0b0; font-size:11px; }
+  details.fold[open] > summary::before { content:'▾  '; }
+  .arr { display:inline-block; transition:transform .15s; color:#98a1ab; font-size:12px; margin-right:4px; flex:none; }
+  details[open] > summary .arr { transform:rotate(90deg); }
+
+  /* v1.8: 홈 도서 드롭다운 */
+  details.homefold > summary { list-style:none; cursor:pointer; }
+  details.homefold > summary::-webkit-details-marker { display:none; }
+  details.homefold > .homebody { margin:4px 0 16px; padding:14px 16px; background:#fff;
+    border:1px solid var(--bd); border-radius:0 0 14px 14px; border-top:0; }
+  details.homefold[open] > summary .prow2 { border-radius:12px 12px 0 0; border-bottom-color:#edeff2; }
+
+  /* v1.8: 도서 관리 접기 카드 */
+  details.bookfold { background:#fff; border:1px solid var(--bd); border-radius:14px; margin-top:10px;
+    box-shadow:0 1px 2px rgba(20,35,55,.05); }
+  details.bookfold > summary { list-style:none; cursor:pointer; padding:13px 16px; }
+  details.bookfold > summary::-webkit-details-marker { display:none; }
+  details.bookfold > .bfbody { padding:2px 16px 15px; }
+  details.bookfold[open] > summary { border-bottom:1px dashed #e8ebee; }
+
+  /* v1.8: 수정·검수 판정 상태 스트립 */
+  .item { border-left:4px solid transparent; }
+  .item.st-wait { border-left-color:#d8574a; background:#fffafa; }
+  .item.st-req  { border-left-color:#e0a13c; }
+  .item.st-up   { border-left-color:#5b6bc0; background:#fafbff; }
+  .item.st-done { border-left-color:#3f9d52; }
+  .stbadge { font-size:11.5px; font-weight:800; padding:3px 10px; border-radius:8px; white-space:nowrap; }
+  .sb-wait { background:#d8574a; color:#fff; }
+  .sb-req  { background:#fdf1d7; color:#8a5a00; }
+  .sb-up   { background:#5b6bc0; color:#fff; }
+  .sb-done { background:#e2f2e4; color:#1d6b2a; }
+
+  @media (max-width:900px) {
+    .app { display:block; }
+    .side { position:sticky; top:0; z-index:50; width:auto; height:auto; flex-direction:row; align-items:center;
+            gap:10px; padding:9px 10px; overflow-x:auto; }
+    .side .brand, .side .whosub, .side .foot .cap { display:none; }
+    .side .who { font-size:12.5px; padding:0 2px 0 4px; white-space:nowrap; }
+    nav.menu { margin-top:0; flex-direction:row; gap:3px; }
+    nav.menu a { padding:8px 10px; font-size:12.5px; white-space:nowrap; }
+    nav.menu a svg { display:none; }
+    .side .foot { margin-top:0; margin-left:6px; }
+    .side .foot button { padding:8px 10px; font-size:12px; white-space:nowrap; }
+    .main { padding:16px 12px 80px; }
+    input[type=text], textarea, select { font-size:16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="side">
+  <div class="brand">SP MEDIATEK · AUDIOBOOK</div>
+  <div class="who">관리자 대시보드</div>
+  <div class="whosub">대표 전용 — 링크 공유 금지</div>
+  <nav class="menu" id="menu">
+    <a data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>홈<span class="badge" id="bdgHome" style="display:none"></span></a>
+    <a data-tab="books"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>도서 관리<span class="badge soft" id="bdgBooks" style="display:none"></span></a>
+    <a data-tab="qc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="m3.5 5.5 1 1 2-2"/><path d="m3.5 11.5 1 1 2-2"/><path d="m3.5 17.5 1 1 2-2"/></svg>수정·검수<span class="badge" id="bdgQc" style="display:none"></span></a>
+    <a data-tab="partners"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16 15.2c2.6.3 4.6 1.8 5.5 4.3"/></svg>파트너</a>
+    <a data-tab="rec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3.5"/></svg>녹음</a>
+    <a data-tab="att"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>출결</a>
+  </nav>
+  <div class="foot">
+    <button id="reloadBtn" type="button">↻ 새로고침</button>
+    <div class="cap">시트에서 직접 바꾼 내용도<br>새로고침하면 여기에 반영됩니다.</div>
+  </div>
+</aside>
+
+<main class="main"><div class="inner">
+  <section id="tab-home"></section>
+  <section id="tab-books" style="display:none"></section>
+  <section id="tab-qc" style="display:none"></section>
+  <section id="tab-partners" style="display:none"></section>
+  <section id="tab-rec" style="display:none"></section>
+  <section id="tab-att" style="display:none"></section>
+</div></main>
+
+<div id="msPanel"><div class="mshead"><span id="msName">원고</span><span style="flex:1"></span><button class="small" id="msClose" type="button">닫기</button></div><iframe id="msFrame"></iframe></div>
+
+</div>
+
+<script>
+let DATA = <?!= data ?>;
+const TOKEN = DATA.token;
+
+/* ── 공통 ── */
+const STEP_NAMES = ['계약 진행','기획','성우 확정·녹음 일정','최종 원고 제출','녹음','편집','내부 검수','출판사 검수','최종 납품','유통 및 정산'];
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = text;
+  return e;
+}
+
+/* v2.0 — 출판사(작게·연하게) + 도서명(크게·진하게) */
+function bookTitleEl(pub, title) {
+  const w = el('span', 'btitle');
+  if (pub) w.appendChild(el('span', 'pb', pub));
+  const nm = el('span', 'nm');
+  nm.appendChild(el('span', 'q', '『'));
+  nm.appendChild(document.createTextNode(title));
+  nm.appendChild(el('span', 'q', '』'));
+  w.appendChild(nm);
+  return w;
+}
+
+/* v2.0 — 접힌 줄에 보여줄 담당 성우 · 러닝타임 요약 */
+function bookMetaEl(b) {
+  const cast = (b.cast || []).filter(x => x.actor);
+  if (!cast.length && !b.rt && !b.eng) return null;
+  const w = el('div', 'bmeta');
+  if (cast.length) {
+    w.appendChild(el('span', 'k', '성우'));
+    w.appendChild(document.createTextNode(cast.map(x => x.role + ' ' + x.actor).join(' · ')));
+  }
+  if (b.rt || b.rtEst) {
+    if (cast.length) w.appendChild(el('span', 'dot', '|'));
+    w.appendChild(el('span', 'k', b.rt ? 'RT' : '예상 RT 🔒'));
+    w.appendChild(el('span', 'rt', b.rt || b.rtEst));
+  }
+  if (b.eng) {
+    if (cast.length || b.rt) w.appendChild(el('span', 'dot', '|'));
+    w.appendChild(el('span', 'k', '엔지니어'));
+    w.appendChild(document.createTextNode(b.eng + (b.reviewer ? ' · 검수 ' + b.reviewer : '')));
+  }
+  return w;
+}
+function srv(fn) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  return new Promise((res, rej) => {
+    const r = google.script.run.withSuccessHandler(res).withFailureHandler(rej);
+    r[fn].apply(r, args);
+  });
+}
+function dday(dstr) {
+  if (!dstr) return null;
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  let d = null;
+  const m = String(dstr).trim().match(/^(\d{1,2})[\/\.](\d{1,2})$/);
+  if (m) {
+    const y = t.getFullYear();
+    [y - 1, y, y + 1].forEach(yy => {
+      const c = new Date(yy, +m[1] - 1, +m[2]);
+      if (d === null || Math.abs(c - t) < Math.abs(d - t)) d = c;
+    });
+  } else {
+    d = new Date(dstr);
+    if (isNaN(d)) return null;
+    d.setHours(0, 0, 0, 0);
+  }
+  return Math.round((d - t) / 86400000);
+}
+function ddayTxt(n) { return n === null ? '' : (n === 0 ? 'D-DAY' : (n > 0 ? 'D-' + n : 'D+' + (-n))); }
+async function copyText(t, mark) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(t); ok = true; }
+  catch (e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e2) { ok = false; }
+  }
+  if (mark) {
+    mark.textContent = ok ? '복사됨 ✓' : '복사 실패 — 직접 선택해 주세요';
+    mark.style.color = ok ? '#1d6b2a' : '#b23a2f';
+    setTimeout(() => { mark.textContent = ''; }, 2200);
+  }
+  return ok;
+}
+function markBusy(mark) { mark.textContent = '저장 중…'; mark.style.color = '#888'; }
+function markOk(mark, t) { mark.textContent = t || '저장됨 ✓'; mark.style.color = '#1d6b2a'; setTimeout(() => { mark.textContent = ''; }, 1800); }
+function markBad(mark, e) { mark.textContent = '실패: ' + (e.message || e); mark.style.color = '#b23a2f'; }
+function safeReload() { try { location.reload(); } catch (e) {} }
+document.getElementById('reloadBtn').onclick = safeReload;
+
+/* ── 데이터 준비: QC 도서 ↔ 프로젝트DB 매칭 ──
+   v2.5: 잠금이 걸린 경우 비밀번호를 맞춘 뒤에 데이터가 오므로, 준비 과정을 함수로 분리했습니다. */
+let PROD = null;
+let prodByTitle = {};
+let pubLinkByName = {}, engLinkByName = {}, actorLinkByName = {};
+let finalRefByBook = {};
+
+function prepData() {
+  PROD = DATA.prod || null;
+  prodByTitle = {};
+  if (PROD) PROD.rows.forEach(r => { prodByTitle[r.title] = r; });
+  (DATA.books || []).forEach(b => { b._prod = prodByTitle[(b.pdbTitle || b.title)] || null; });
+  pubLinkByName = {}; engLinkByName = {}; actorLinkByName = {};
+  ((DATA.partners || {}).pubs || []).forEach(p => { if (p.link && !pubLinkByName[p.pubName]) pubLinkByName[p.pubName] = p.link; });
+  ((DATA.partners || {}).engineers || []).forEach(p => { if (p.link) engLinkByName[p.name] = p.link; });
+  ((DATA.partners || {}).actors || []).forEach(p => { if (p.link) actorLinkByName[p.name] = p.link; });
+  finalRefByBook = {};
+  (DATA.books || []).forEach(b => {
+    if (!b.finalUrl) return;
+    const m = String(b.finalUrl).match(/[-\w]{25,}/);
+    finalRefByBook[b.title] = { url: b.finalUrl, id: (m && String(b.finalUrl).indexOf('/folders/') < 0) ? m[0] : '' };
+  });
+}
+
+function pdbOnlyRows() {
+  if (!PROD) return [];
+  const used = {};
+  DATA.books.forEach(b => { if (b._prod) used[b._prod.pid] = true; });
+  return PROD.rows.filter(r => !used[r.pid]);
+}
+
+/* ── 이슈 상태 (기존 로직 유지) ── */
+function stateOf(i) {
+  if (i.applied === '반영완료') return 'done';
+  if (i.verdict === '대기' || !i.verdict) return 'wait';
+  if (i.verdict === '그냥 진행' || i.verdict === '수정 불가') return 'done';
+  return 'prog';
+}
+function isArrived(i) { return i.recstat === '업로드완료' && i.applied !== '반영완료'; }
+function issuesFor(title) { return DATA.issues.filter(i => i.book === title); }
+function adminMemoOf(i) {
+  const l = String(i.note || '').split('\n').find(x => x.indexOf('[대표 메모]') === 0);
+  return l ? l.replace('[대표 메모]', '').trim() : '';
+}
+function setLocalAdminMemo(i, memo) {
+  const kept = String(i.note || '').split('\n').filter(l => l.indexOf('[대표 메모]') !== 0);
+  if (memo) kept.unshift('[대표 메모] ' + memo);
+  i.note = kept.join('\n').trim();
+}
+
+/* ── 탭 전환 ── */
+const TABS = ['home', 'books', 'qc', 'partners', 'rec', 'att'];
+const S = { tab: 'home', f: 'wait', fBook: '*', fWho: 'all' };
+document.querySelectorAll('#menu a').forEach(a => {
+  a.onclick = ev => { ev.preventDefault(); go(a.dataset.tab); };
+});
+function go(tab, opt) {
+  S.tab = tab;
+  if (opt && opt.f) S.f = opt.f;
+  if (opt && opt.fBook !== undefined) S.fBook = opt.fBook;
+  TABS.forEach(t => { document.getElementById('tab-' + t).style.display = (t === S.tab) ? '' : 'none'; });
+  document.querySelectorAll('#menu a').forEach(a => a.classList.toggle('on', a.dataset.tab === S.tab));
+  render();
+  window.scrollTo(0, 0);
+  if (opt && opt.scroll) {
+    const t = document.getElementById(opt.scroll);
+    if (t) {
+      if (t.tagName === 'DETAILS' && !t.open) { t.open = true; }
+      setTimeout(() => { try { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }, 60);
+    }
+  }
+}
+function render() {
+  renderBadges();
+  if (S.tab === 'home') renderHome();
+  else if (S.tab === 'books') renderBooks();
+  else if (S.tab === 'qc') renderQc();
+  else if (S.tab === 'partners') renderPartners();
+  else if (S.tab === 'rec') renderRec();
+  else renderAtt();
+}
+function counts() {
+  const n = { wait: 0, up: 0, rec: 0, pubwait: 0, done: 0, total: 0 };
+  DATA.issues.forEach(i => {
+    n.total++;
+    const s = stateOf(i);
+    if (s === 'wait') n.wait++;
+    if (s === 'done') n.done++;
+    if (isArrived(i)) n.up++;
+    if (i.recstat === '요청됨') n.rec++;
+    if (i.stage === '출판사검수' && s === 'wait') n.pubwait++;
+  });
+  n.checks = 0;
+  if (PROD) PROD.rows.forEach(r => { n.checks += r.pendingCnt; });
+  return n;
+}
+function renderBadges() {
+  const n = counts();
+  const q = document.getElementById('bdgQc');
+  q.style.display = n.wait ? '' : 'none'; q.textContent = n.wait;
+  /* v3.1 — 홈 뱃지는 "새 소식"(출판사 제출·업데이트·재녹음 도착)만 셉니다.
+     예전에는 판정 대기 수(수십 건)가 그대로 떠서 늘 빨간 숫자였고, 그 탓에
+     정작 새로 온 소식이 묻혔습니다. 판정 대기는 [수정·검수] 뱃지가 전담합니다. */
+  const news = (DATA.alerts || []).filter(a => a.kind !== 'wait').length + (DATA.alertLog || []).length;
+  const h = document.getElementById('bdgHome');
+  h.style.display = news ? '' : 'none'; h.textContent = news;
+  let od = 0;
+  if (PROD) PROD.rows.forEach(r => r.checks.forEach(c => {
+    if (c.done || !c.due) return;
+    const dn = dday(c.due);
+    if (dn !== null && dn < 0) od++;
+  }));
+  const b = document.getElementById('bdgBooks');
+  b.style.display = od ? '' : 'none'; b.textContent = od;
+}
+
+/* ══════════════════ 홈 ══════════════════ */
+/* v2.2.1 — 확인 필요 알림 (출판사 제출·재녹음 도착·판정 대기)
+   v3.1 — 기본 필터를 [새 소식]으로: 판정 대기(수십 건)가 알림을 뒤덮어
+   정작 새로 온 출판사 제출·재녹음 도착이 묻히던 문제를 해결.
+   판정 대기는 [수정·검수] 탭이 전담하고, 여기서는 탭으로만 볼 수 있습니다. */
+let alertFilter = 'new';
+
+function renderAlerts(box) {
+  const all = DATA.alerts || [];
+  const evts = DATA.alertLog || [];
+  box.appendChild(el('h2', 'sec', '확인 필요 알림'));
+  if (!all.length && !evts.length) { box.appendChild(el('div', 'empty', '✓ 새 알림이 없습니다.')); return; }
+
+  const KIND = [
+    ['new',  '새 소식'],
+    ['evt',  '출판사 업데이트'],
+    ['pub',  '출판사 제출'],
+    ['rec',  '재녹음 도착'],
+    ['wait', '판정 대기'],
+    ['all',  '전체']
+  ];
+  const TAG = { pub: '출판사', rec: '재녹음', wait: '판정', evt: '업데이트' };
+  const EVT_LABEL = { '성우선정': '성우 최종 선정 제출', '타이틀정보': '타이틀 페이지 정보 제출', '북트레일러': '북트레일러 문구 제출' };
+  const newCnt = all.filter(a => a.kind !== 'wait').length + evts.length;
+
+  const tabs = el('div', 'gtabs');
+  const listBox = el('div');
+  KIND.forEach(k => {
+    const cnt = k[0] === 'all' ? all.length + evts.length
+              : k[0] === 'new' ? newCnt
+              : k[0] === 'evt' ? evts.length
+              : all.filter(a => a.kind === k[0]).length;
+    if (!cnt && k[0] !== 'all' && k[0] !== 'new') return;
+    const t = el('button', 'gtab', k[1]);
+    t.dataset.k = k[0];
+    t.appendChild(el('span', 'c', String(cnt)));
+    t.onclick = () => { alertFilter = k[0]; draw(); };
+    tabs.appendChild(t);
+  });
+  box.appendChild(tabs);
+  box.appendChild(listBox);
+
+  /* v2.3 — 출판사가 대시보드에서 제출한 업데이트 (성우 선정 · 타이틀 정보 · 북트레일러) */
+  function evtRow(a) {
+    const w = el('div', 'alrt k-pub');
+    const tg = el('span', 'tg', TAG.evt);
+    tg.style.background = '#153f2a'; tg.style.color = '#d6f2df';
+    w.appendChild(tg);
+    const bd = el('div', 'bd');
+    bd.appendChild(el('div', 't1', (a.pub ? a.pub + ' ' : '') + '『' + a.book + '』 — ' + (EVT_LABEL[a.kind] || a.kind + ' 제출')));
+    bd.appendChild(el('div', 't2', (a.time ? a.time + ' · ' : '') + a.text));
+    w.appendChild(bd);
+    const ack = el('button', 'small', '확인');
+    ack.style.flex = 'none';
+    ack.onclick = async ev => {
+      ev.stopPropagation();
+      ack.disabled = true; ack.textContent = '…';
+      try {
+        await srv('adminAckAlert', TOKEN, a.id);
+        DATA.alertLog = (DATA.alertLog || []).filter(x => x.id !== a.id);
+        renderHome();
+      } catch (e) { ack.disabled = false; ack.textContent = '확인'; }
+    };
+    /* v2.5 — 그 출판사 화면을 새 탭에서 바로 열기 (파트너 탭에서 찾아 들어갈 필요 없음) */
+    const plink = pubLinkByName[a.pub];
+    if (plink) {
+      const ob = el('button', 'small', '출판사 화면 ↗');
+      ob.style.flex = 'none';
+      ob.onclick = ev => { ev.stopPropagation(); window.open(plink, '_blank', 'noopener'); };
+      w.appendChild(ob);
+      w.title = a.pub + ' 화면 열기';
+      w.onclick = () => window.open(plink, '_blank', 'noopener');
+    } else {
+      w.onclick = () => go('partners');
+    }
+    w.appendChild(ack);
+    return w;
+  }
+
+  function draw() {
+    Array.prototype.forEach.call(tabs.children, t => {
+      t.className = 'gtab' + (t.dataset.k === alertFilter ? ' on' : '');
+    });
+    listBox.innerHTML = '';
+    const showEvt = (alertFilter === 'all' || alertFilter === 'new' || alertFilter === 'evt') && evts.length;
+    if (showEvt) {
+      evts.forEach(a => listBox.appendChild(evtRow(a)));
+      if (alertFilter === 'evt' && evts.length > 1) {
+        const allAck = el('button', 'small', '모두 확인 처리');
+        allAck.style.margin = '8px 0 2px';
+        allAck.onclick = async () => {
+          allAck.disabled = true; allAck.textContent = '처리 중…';
+          try { await srv('adminAckAlert', TOKEN, '*'); DATA.alertLog = []; renderHome(); }
+          catch (e) { allAck.disabled = false; allAck.textContent = '모두 확인 처리'; }
+        };
+        listBox.appendChild(allAck);
+      }
+    }
+    const list = alertFilter === 'evt' ? []
+      : alertFilter === 'new' ? all.filter(a => a.kind !== 'wait')
+      : all.filter(a => alertFilter === 'all' || a.kind === alertFilter);
+    if (!list.length && !showEvt) {
+      const waitN = all.filter(a => a.kind === 'wait').length;
+      listBox.appendChild(el('div', 'empty',
+        alertFilter === 'new' && waitN
+          ? '✓ 새 소식이 없습니다. 판정 대기 ' + waitN + '건은 [수정·검수] 탭에서 처리하실 수 있습니다.'
+          : '해당 알림이 없습니다.'));
+      return;
+    }
+    list.slice(0, 60).forEach(a => {
+      const w = el('div', 'alrt k-' + a.kind);
+      w.appendChild(el('span', 'tg', TAG[a.kind] || ''));
+      const bd = el('div', 'bd');
+      bd.appendChild(el('div', 't1', (a.pub ? a.pub + ' ' : '') + '『' + a.book + '』 — ' + a.text));
+      if (a.detail) bd.appendChild(el('div', 't2', a.detail));
+      w.appendChild(bd);
+      w.onclick = () => go('qc', { f: a.kind === 'rec' ? 'up' : 'wait', fBook: a.book });
+      listBox.appendChild(w);
+    });
+    if (list.length > 60) listBox.appendChild(el('div', 'meta', '외 ' + (list.length - 60) + '건 — [수정·검수] 탭에서 전체를 보실 수 있습니다.'));
+  }
+  draw();
+}
+
+function renderHome() {
+  const box = document.getElementById('tab-home');
+  box.innerHTML = '';
+  box.appendChild(el('h1', 'tt', '안녕하세요, 대표님.'));
+  /* v3.1 — 홈 재구성: ① 지금 처리할 일 → ② 전체 도서 보드 → ③ 알림 → ④ 시트 바로가기.
+     예전에는 알림 피드(수십 건)가 맨 위를 차지해 전체 도서 현황이 스크롤 밑으로 밀렸습니다. */
+  box.appendChild(el('p', 'greet', '전체 도서 진행 현황이 바로 아래 있습니다. 도서 줄을 누르면 그 자리에서 펼쳐져 단계·체크·메모까지 관리되고, 새 소식과 시트 바로가기는 그 아래에 있습니다.'));
+
+  if (!PROD) {
+    const bn = el('div', 'banner');
+    bn.style.marginTop = '12px';
+    bn.textContent = '⚠ 제작 현황판(프로젝트DB)이 아직 연동되지 않았습니다. 시트 메뉴 [SP QC → ⑭ 제작 현황판 연동 준비]를 실행하면 진행 단계·체크리스트·안내 메모를 이 대시보드에서 관리할 수 있습니다.';
+    box.appendChild(bn);
+  }
+
+  const n = counts();
+  box.appendChild(el('h2', 'sec', '지금 처리할 일'));
+  if (!n.wait && !n.up) {
+    box.appendChild(el('div', 'empty', '✓ 지금 처리할 일이 없습니다.'));
+  } else {
+    const g = el('div', 'metrics');
+    [['판정 대기 — 내 승인 필요', n.wait, n.wait ? 'warn' : '', () => go('qc', { f: 'wait' })],
+     ['수정 녹음 도착 — 반영 확인', n.up, '', () => go('qc', { f: 'up' })]].forEach(d => {
+      if (!d[1]) return;
+      const m = el('div', 'metric' + (d[2] ? ' ' + d[2] : ''));
+      m.appendChild(el('b', null, String(d[1])));
+      m.appendChild(el('span', null, d[0]));
+      m.onclick = d[3];
+      g.appendChild(m);
+    });
+    box.appendChild(g);
+  }
+
+  /* 전체 도서 진행 현황 — 10단계 기준 막대 (v3.1: 알림보다 위로) */
+  box.appendChild(el('h2', 'sec', '전체 도서 진행 현황'));
+  const rows = [];
+  DATA.books.forEach((b, idx) => {
+    rows.push({
+      title: b.title, pub: b.pub || '', group: b.group || '미분류',
+      step: b._prod ? b._prod.step : 0, stage: b.stage,
+      dl: b._prod ? b._prod.deadline : b.due,
+      wait: issuesFor(b.title).filter(i => stateOf(i) === 'wait').length,
+      up: issuesFor(b.title).filter(isArrived).length,
+      card: () => bookAdminCard(b, idx, true)
+    });
+  });
+  pdbOnlyRows().forEach(r => rows.push({ title: r.title, pub: r.pub || '', group: '미해당(시트 미등록)', step: r.step, stage: '', dl: r.deadline, wait: 0, up: 0, card: () => prodOnlyCard(r, true) }));
+  /* v3.1 — 정렬: 마감 임박순, 단 완료(10단계) 도서는 맨 아래.
+     예전에는 완료 도서의 지난 마감일(D+)이 최우선으로 잡혀 맨 위를 차지했습니다. */
+  rows.sort((a, b2) => {
+    const rank = s => {
+      if (s.step >= 10) return 1000000;
+      const dn = dday(s.dl);
+      return dn === null ? 9999 : dn;
+    };
+    return rank(a) - rank(b2);
+  });
+  if (!rows.length) box.appendChild(el('div', 'empty', '등록된 도서가 없습니다.'));
+
+  /* v2.2 — 그룹(차수) 탭으로 걸러 보기 */
+  const listBox = el('div');
+  const tabs = groupTabs(rows, g => { homeGroup = g; draw(); });
+  if (tabs) box.appendChild(tabs);
+  box.appendChild(listBox);
+
+  function draw() {
+    listBox.innerHTML = '';
+    if (tabs) {
+      Array.prototype.forEach.call(tabs.children, t => {
+        t.className = 'gtab' + (t.dataset.g === homeGroup ? ' on' : '');
+      });
+    }
+    rows.filter(s => homeGroup === '__all__' || (s.group || '미해당') === homeGroup).forEach(one);
+    if (!listBox.firstChild) listBox.appendChild(el('div', 'empty', '이 그룹에 도서가 없습니다.'));
+  }
+
+  function one(s) {
+    const r = el('div', 'prow2' + (s.step >= 10 ? ' done10' : ''));
+    const bt = el('b', 'bt');
+    bt.appendChild(el('span', 'arr', '▸'));
+    bt.appendChild(bookTitleEl(s.pub, s.title));
+    r.appendChild(bt);
+    const bar = el('span', 'bar');
+    const i2 = el('i');
+    i2.style.width = (s.step ? Math.round(s.step / 10 * 100) : 4) + '%';
+    bar.appendChild(i2);
+    r.appendChild(bar);
+    r.appendChild(el('span', 'stepc', s.step ? s.step + '단계 · ' + STEP_NAMES[s.step - 1] : (s.stage ? '검수 ' + s.stage : '단계 미연동')));
+    const nn = dday(s.dl);
+    if (s.dl && s.step < 10) r.appendChild(el('span', 'dd' + (nn !== null && nn <= 7 ? ' soon' : ''), '납품 ' + s.dl + (nn !== null ? ' · ' + ddayTxt(nn) : '')));
+    if (s.wait) r.appendChild(el('span', 'pill p-wait', '판정 ' + s.wait));
+    if (s.up) r.appendChild(el('span', 'pill p-up', '도착 ' + s.up));
+    const d = document.createElement('details');
+    d.className = 'homefold';
+    const smy = document.createElement('summary');
+    smy.appendChild(r);
+    d.appendChild(smy);
+    const body = el('div', 'homebody');
+    d.appendChild(body);
+    let built = false;
+    d.addEventListener('toggle', () => {
+      if (d.open && !built) { built = true; body.appendChild(bareCard(s.card())); }
+    });
+    listBox.appendChild(d);
+  }
+
+  draw();
+
+  /* v2.2 — 확인 필요 알림 (v3.1: 보드 아래로 이동, 기본 [새 소식]) */
+  renderAlerts(box);
+
+  /* v2.2 — 시트 바로가기 (v3.1: 맨 아래로 이동) */
+  const su = DATA.sheetUrls || {};
+  if (su.qc || su.pdb) {
+    box.appendChild(el('h2', 'sec', '시트 바로가기'));
+    const sc = el('div', 'shortcuts');
+    if (su.qc) { const a = document.createElement('a'); a.href = su.qc; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '📗 QC 마스터 시트 열기'; sc.appendChild(a); }
+    if (su.pdb) { const a2 = document.createElement('a'); a2.href = su.pdb; a2.target = '_blank'; a2.rel = 'noopener'; a2.textContent = '📈 프로젝트DB 열기'; sc.appendChild(a2); }
+    if (su.cost) { const a3 = document.createElement('a'); a3.href = su.cost; a3.target = '_blank'; a3.rel = 'noopener'; a3.textContent = '💰 제작비 시트'; sc.appendChild(a3); }
+    if (su.alldb) { const a4 = document.createElement('a'); a4.href = su.alldb; a4.target = '_blank'; a4.rel = 'noopener'; a4.textContent = '🗂 전체 오디오북 제작 DB'; sc.appendChild(a4); }
+    box.appendChild(sc);
+  }
+}
+
+/* v2.2 — 그룹(차수) 탭 만들기. 그룹이 하나뿐이면 탭을 만들지 않습니다 */
+let homeGroup = '__all__';
+let bookGroup = '__all__';
+
+function groupTabs(rows, onPick) {
+  const names = [];
+  rows.forEach(r => {
+    const g = (r.group || '미해당').trim() || '미해당';
+    if (names.indexOf(g) < 0) names.push(g);
+  });
+  if (names.length < 2) return null;
+  names.sort((a, b) => {
+    if (a === '미해당') return 1;
+    if (b === '미해당') return -1;
+    return a.localeCompare(b, 'ko');
+  });
+  const w = el('div', 'gtabs');
+  const mk = (key, label, cnt) => {
+    const t = el('button', 'gtab', label);
+    t.dataset.g = key;
+    t.appendChild(el('span', 'c', String(cnt)));
+    t.onclick = () => onPick(key);
+    w.appendChild(t);
+  };
+  mk('__all__', '전체', rows.length);
+  names.forEach(nm => mk(nm, nm, rows.filter(r => ((r.group || '미해당').trim() || '미해당') === nm).length));
+  return w;
+}
+
+/** 카드 껍데기(테두리·그림자) 제거 — 드롭다운 안에 넣을 때 사용 */
+function bareCard(cardEl) {
+  cardEl.style.border = '0';
+  cardEl.style.boxShadow = 'none';
+  cardEl.style.padding = '0';
+  cardEl.style.marginTop = '0';
+  return cardEl;
+}
+
+/* ══════════════════ 도서 관리 ══════════════════ */
+/* v2.0 — 그룹(차수) 분류 · 순서 변경 ------------------------------------ */
+function groupBooks(list) {
+  const m = {}, order = [];
+  list.forEach((b, idx) => {
+    const g = (b.group || '미분류').trim() || '미분류';
+    if (!m[g]) { m[g] = []; order.push(g); }
+    m[g].push({ b: b, idx: idx });
+  });
+  order.sort((a, x) => {
+    if (a === '미분류') return 1;
+    if (x === '미분류') return -1;
+    return a.localeCompare(x, 'ko');
+  });
+  return order.map(name => ({
+    name: name,
+    items: m[name].sort((p, q) => (p.b.sort || 0) - (q.b.sort || 0) || p.b.title.localeCompare(q.b.title, 'ko'))
+  }));
+}
+
+function orderCtl(g, i) {
+  const w = el('div', 'ord');
+  const up = el('button', '', '▲');
+  const dn = el('button', '', '▼');
+  up.title = '위로'; dn.title = '아래로';
+  up.disabled = i === 0;
+  dn.disabled = i === g.items.length - 1;
+  const move = async (delta) => {
+    const arr = g.items.slice();
+    const t = arr[i]; arr[i] = arr[i + delta]; arr[i + delta] = t;
+    arr.forEach((it, n) => { it.b.sort = (n + 1) * 10; });
+    renderBooks();
+    try {
+      await srv('adminSetBookOrder', TOKEN,
+        arr.map((it, n) => ({ title: it.b.title, group: g.name, sort: (n + 1) * 10 })));
+    } catch (e) {
+      alert('순서 저장 실패: ' + ((e && e.message) || e) +
+        '\n\n시트 메뉴 [⑧ v2.0 그룹·순서 준비]를 먼저 실행해 주세요.');
+    }
+  };
+  up.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); move(-1); };
+  dn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); move(1); };
+  w.appendChild(up); w.appendChild(dn);
+  return w;
+}
+
+function renderBooks() {
+  const box = document.getElementById('tab-books');
+  box.innerHTML = '';
+  const h = el('h2', 'sec', '도서 관리');
+  h.appendChild(el('span', 'cnt', DATA.books.length + '권'));
+  box.appendChild(h);
+
+  if (!PROD) {
+    const bn = el('div', 'banner');
+    bn.textContent = '⚠ 프로젝트DB 미연동 — 진행 단계·체크·안내 메모 관리를 쓰려면 시트 메뉴 [⑭ 제작 현황판 연동 준비]를 먼저 실행해 주세요.';
+    box.appendChild(bn);
+  }
+
+  box.appendChild(addBookForm());
+
+  if (DATA.books.length) {
+    const tb = el('div', 'frow'); tb.style.margin = '12px 0 2px';
+    const openAll = el('button', 'small', '전체 펼치기');
+    const closeAll = el('button', 'small', '전체 접기');
+    openAll.onclick = () => { DATA.books.forEach(b => openState['bk:' + b.title] = true); renderBooks(); };
+    closeAll.onclick = () => { DATA.books.forEach(b => openState['bk:' + b.title] = false); renderBooks(); };
+    tb.appendChild(openAll); tb.appendChild(closeAll);
+    box.appendChild(tb);
+  }
+
+  /* v2.2 — 그룹(차수) 탭으로 걸러 보고, 그룹 안에서 ▲▼로 순서 변경 */
+  const groups = groupBooks(DATA.books);
+  const gRows = DATA.books.map(b => ({ group: b.group || '미분류' }));
+  const gtabs = groupTabs(gRows, g => { bookGroup = g; renderBooks(); });
+  if (gtabs) {
+    Array.prototype.forEach.call(gtabs.children, t => {
+      t.className = 'gtab' + (t.dataset.g === bookGroup ? ' on' : '');
+    });
+    box.appendChild(gtabs);
+  }
+  const shown = groups.filter(g => bookGroup === '__all__' || g.name === bookGroup);
+  shown.forEach(g => {
+    if (bookGroup === '__all__') {
+      const gh = el('div', 'grphd');
+      gh.appendChild(el('h3', '', g.name));
+      gh.appendChild(el('span', 'cnt', g.items.length + '권'));
+      gh.appendChild(el('span', 'ln'));
+      const gOpen = el('button', 'small', '이 그룹 펼치기');
+      gOpen.onclick = () => { g.items.forEach(x => openState['bk:' + x.b.title] = true); renderBooks(); };
+      gh.appendChild(gOpen);
+      box.appendChild(gh);
+    }
+    g.items.forEach((it, i) => box.appendChild(bookFold(it.b, it.idx, orderCtl(g, i))));
+  });
+  if (!shown.length) box.appendChild(el('div', 'empty', '이 그룹에 도서가 없습니다.'));
+  if (!DATA.books.length) box.appendChild(el('div', 'empty', '등록된 도서가 없습니다. 위 [새 도서 추가]로 등록하세요.'));
+
+  const orphans = pdbOnlyRows();
+  if (orphans.length) {
+    const h2 = el('h2', 'sec', '현황판에만 있는 도서');
+    h2.appendChild(el('span', 'cnt', orphans.length + '권'));
+    box.appendChild(h2);
+    box.appendChild(el('p', 'greet', '프로젝트DB에는 있지만 QC(도서정보)에 등록되지 않은 도서입니다. 단계·체크·메모 관리는 여기서 바로 되고, 오류 기록·검수 기능까지 쓰려면 위 [새 도서 추가]로 등록하세요.'));
+    orphans.forEach(r => box.appendChild(prodOnlyCard(r)));
+  }
+}
+
+function addBookForm() {
+  const d = document.createElement('details');
+  d.className = 'fold';
+  const sm = document.createElement('summary');
+  sm.textContent = '＋ 새 도서 추가 — 여기서만 등록하세요. 시트·프로젝트DB·폴더가 한 번에 맞춰집니다';
+  d.appendChild(sm);
+  const fin = el('div', 'fin');
+  const g = el('div', 'addgrid');
+  const mk = (lab, ph) => {
+    const w = el('div');
+    w.appendChild(el('label', null, lab));
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.placeholder = ph || '';
+    w.appendChild(inp);
+    g.appendChild(w);
+    return inp;
+  };
+  const fAbbr = mk('약칭 (필수 · ID 접두어)', '예) 재즈2');
+  const wPub = el('div');
+  wPub.appendChild(el('label', null, '출판사 (필수)'));
+  const fPub = document.createElement('input');
+  fPub.type = 'text'; fPub.setAttribute('list', 'publist'); fPub.placeholder = '기존 출판사 선택 또는 새로 입력';
+  const dl = document.createElement('datalist'); dl.id = 'publist';
+  const seenP = {};
+  DATA.books.forEach(b => { if (b.pub && !seenP[b.pub]) { seenP[b.pub] = 1; const o = document.createElement('option'); o.value = b.pub; dl.appendChild(o); } });
+  ((DATA.partners || {}).pubs || []).forEach(p => { if (p.pubName && !seenP[p.pubName]) { seenP[p.pubName] = 1; const o = document.createElement('option'); o.value = p.pubName; dl.appendChild(o); } });
+  wPub.appendChild(fPub); wPub.appendChild(dl); g.appendChild(wPub);
+  const fTitle = mk('도서명 (필수)', '정확한 도서명');
+  const fDue = mk('납품 마감 (선택)', '예) 2026-09-30');
+  const wEng = el('div');
+  wEng.appendChild(el('label', null, '담당 엔지니어 (선택)'));
+  const fEng = document.createElement('select');
+  const e0 = document.createElement('option'); e0.value = ''; e0.textContent = '(미정)'; fEng.appendChild(e0);
+  DATA.engineers.forEach(nm => { const o = document.createElement('option'); o.value = nm; o.textContent = nm; fEng.appendChild(o); });
+  wEng.appendChild(fEng); g.appendChild(wEng);
+  const fFolder = mk('드라이브 폴더 링크 (선택)', '이 도서의 드라이브 폴더 URL');
+  /* v2.0 — 그룹(차수) */
+  const wG = el('div');
+  wG.appendChild(el('label', null, '그룹(차수)'));
+  const fGroup = document.createElement('input');
+  fGroup.type = 'text'; fGroup.setAttribute('list', 'grplist');
+  fGroup.placeholder = '예) 2026년 2차';
+  const gdl = document.createElement('datalist'); gdl.id = 'grplist';
+  const seenG = {};
+  DATA.books.forEach(b => {
+    const gn = (b.group || '').trim();
+    if (gn && gn !== '미분류' && !seenG[gn]) { seenG[gn] = 1; const o = document.createElement('option'); o.value = gn; gdl.appendChild(o); }
+  });
+  wG.appendChild(fGroup); wG.appendChild(gdl); g.appendChild(wG);
+  fin.appendChild(g);
+  const btns = el('div', 'btns');
+  const sub = el('button', 'primary', '도서 등록');
+  btns.appendChild(sub);
+  fin.appendChild(btns);
+  const msg = el('div', 'msg');
+  fin.appendChild(msg);
+  sub.onclick = async () => {
+    const abbr = fAbbr.value.trim(), pub = fPub.value.trim(), title = fTitle.value.trim();
+    if (!abbr || !pub || !title) { msg.className = 'msg bad'; msg.textContent = '약칭·출판사·도서명은 필수입니다.'; return; }
+    sub.disabled = true; sub.textContent = '등록 중…';
+    try {
+      const res = await srv('adminAddBook', TOKEN, { abbr: abbr, pub: pub, title: title, due: fDue.value.trim(), eng: fEng.value, folderLink: fFolder.value.trim(), group: fGroup.value.trim() });
+      msg.className = 'msg ok';
+      msg.textContent = '『' + title + '』 등록 완료 — ' + res.folderMsg + ' · 화면을 새로 불러옵니다…';
+      setTimeout(safeReload, 1600);
+    } catch (e) {
+      sub.disabled = false; sub.textContent = '도서 등록';
+      msg.className = 'msg bad'; msg.textContent = e.message || String(e);
+    }
+  };
+  d.appendChild(fin);
+  return d;
+}
+
+function stepSelect(p, mark) {
+  const sel = document.createElement('select');
+  STEP_NAMES.forEach((nm, i) => {
+    const o = document.createElement('option');
+    o.value = String(i + 1); o.textContent = (i + 1) + '단계 · ' + nm;
+    sel.appendChild(o);
+  });
+  sel.value = String(p.step);
+  sel.onchange = async () => {
+    sel.disabled = true; markBusy(mark);
+    try {
+      const res = await srv('adminSetStep', TOKEN, p.pid, parseInt(sel.value, 10), p.title);
+      p.step = res.step;
+      markOk(mark, '저장됨 ✓ 출판사 페이지에 반영');
+      renderBadges();
+    } catch (e) { sel.value = String(p.step); markBad(mark, e); }
+    sel.disabled = false;
+  };
+  return sel;
+}
+
+function checkChips(p) {
+  const w = el('div', 'cks');
+  p.checks.forEach(c => {
+    const chip = el('span', 'ckc');
+    const paint = () => {
+      chip.textContent = (c.done ? '✓ ' : '') + c.label.replace(/\s*\(.*\)$/, '');
+      let cls = 'ckc ';
+      if (c.done) cls += 'on';
+      else if (c.due) {
+        const dn = dday(c.due);
+        cls += (dn !== null && dn < 0) ? 'off od' : 'off';
+        const sm = document.createElement('small');
+        sm.textContent = c.due + (dn === null ? '' : (dn < 0 ? ' 지남' : (dn === 0 ? ' 오늘' : ' D-' + dn)));
+        chip.appendChild(sm);
+      } else {
+        cls += 'mid';
+        const sm = document.createElement('small');
+        sm.textContent = '기한 미정';
+        chip.appendChild(sm);
+      }
+      chip.className = cls;
+    };
+    paint();
+    chip.onclick = async () => {
+      if (chip.classList.contains('busy')) return;
+      chip.classList.add('busy');
+      const want = !c.done;
+      try {
+        await srv('adminSetCheck', TOKEN, p.pid, c.key, want, p.title);
+        c.done = want;
+        p.pendingCnt = p.checks.filter(x => !x.done).length;
+        paint();
+        renderBadges();
+      } catch (e) { alert('저장 실패: ' + (e.message || e)); }
+      chip.classList.remove('busy');
+    };
+    w.appendChild(chip);
+  });
+  return w;
+}
+
+function memoEditor(p) {
+  const w = el('div');
+  w.appendChild(el('div', 'fldlab', '출판사 공개 안내 메모 — 출판사 페이지의 "SP미디어텍 안내"에 그대로 표시'));
+  const ta = document.createElement('textarea');
+  ta.value = p.memo || '';
+  ta.placeholder = '예) 메인성우 녹음 완료, 서브성우 7/6 녹음 완료 예정';
+  w.appendChild(ta);
+  const r = el('div', 'frow'); r.style.marginTop = '6px';
+  const b = el('button', 'small', '메모 저장');
+  const mark = el('span', 'savemark', '');
+  b.onclick = async () => {
+    b.disabled = true; markBusy(mark);
+    try { await srv('adminSetProdMemo', TOKEN, p.pid, ta.value, p.title); p.memo = ta.value; markOk(mark); }
+    catch (e) { markBad(mark, e); }
+    b.disabled = false;
+  };
+  r.appendChild(b); r.appendChild(mark);
+  w.appendChild(r);
+  return w;
+}
+
+function prodEditor(p) {
+  const w = el('div');
+  w.appendChild(el('div', 'fldlab', '진행 단계 — 출판사 페이지·알림 메일에 그대로 반영'));
+  const r = el('div', 'frow');
+  const mark = el('span', 'savemark', '');
+  r.appendChild(stepSelect(p, mark));
+  if (p.deadline) {
+    const n = dday(p.deadline);
+    r.appendChild(el('span', 'chip' + (n !== null && n <= 7 ? ' redln' : ' gray'), '납품 ' + p.deadline + (n !== null ? ' · ' + ddayTxt(n) : '')));
+  }
+  r.appendChild(mark);
+  w.appendChild(r);
+  w.appendChild(el('div', 'fldlab', '출판사 체크 항목 — 초록 완료 · 빨강 기한 진행 중 · 주황 기한 미정 (누르면 완료/미완료 전환)'));
+  w.appendChild(checkChips(p));
+  w.appendChild(checkDueEditor(p));
+  w.appendChild(memoEditor(p));
+  return w;
+}
+
+/** 도서 관리 탭 — 접었다 펴는 도서 카드 (요약줄 + 펼치면 전체 관리 화면) */
+/* v2.6 — 수정·검수에서 도서 관리의 해당 카드로 점프 (펼침 + 스크롤) */
+function gotoBookCard(title) {
+  openState['bk:' + title] = true;
+  bookGroup = '__all__';
+  go('books');
+  setTimeout(() => {
+    document.querySelectorAll('details.bookfold').forEach(x => {
+      if (x.dataset.book === title) { x.open = true; x.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  }, 60);
+}
+
+function bookFold(b, idx, ordCtl) {
+  const d = document.createElement('details');
+  d.className = 'bookfold';
+  d.dataset.book = b.title;
+  d.id = 'bk-' + idx;
+  const key = 'bk:' + b.title;
+  d.open = !!openState[key];
+
+  const all = issuesFor(b.title);
+  const wait = all.filter(i => stateOf(i) === 'wait').length;
+  const up = all.filter(isArrived).length;
+
+  const smy = document.createElement('summary');
+  const r = el('div', 'bhead');
+  if (ordCtl) r.appendChild(ordCtl);
+  const tt = el('span', 'tt');
+  tt.appendChild(el('span', 'arr', '▸'));
+  r.appendChild(tt);
+  r.appendChild(bookTitleEl(b.pub, b.title));
+  if (b.abbr) r.appendChild(el('span', 'chip gray', b.abbr));
+  /* v2.6 — 러닝타임을 제목 바로 옆에 항상 표시 (캐스팅 입력과 무관) */
+  if (b.rt) r.appendChild(el('span', 'chip rtc', 'RT ' + b.rt));
+  else if (b.rtEst) r.appendChild(el('span', 'chip rtc', '예상 ' + b.rtEst + ' 🔒'));
+  if (b._prod) r.appendChild(el('span', 'chip gray', b._prod.step + '단계 · ' + STEP_NAMES[b._prod.step - 1]));
+  if (b.editDue) {
+    const nE = dday(b.editDue);
+    r.appendChild(el('span', 'chip' + (nE !== null && nE <= 3 ? ' redln' : ' gray'), '편집 ' + b.editDue));
+  }
+  if ((b.music || '').trim()) r.appendChild(el('span', 'chip music', '🎵 음악 완료'));
+  if (wait) r.appendChild(el('span', 'pill p-wait', '판정 ' + wait));
+  if (up) r.appendChild(el('span', 'pill p-up', '도착 ' + up));
+  smy.appendChild(r);
+  const meta = bookMetaEl(b);
+  if (meta) smy.appendChild(meta);
+  d.appendChild(smy);
+
+  const body = el('div', 'bfbody');
+  d.appendChild(body);
+  let built = false;
+  const build = () => { if (!built) { built = true; body.appendChild(bareCard(bookAdminCard(b, idx, true))); } };
+  if (d.open) build();
+  d.addEventListener('toggle', () => { openState[key] = d.open; build(); });
+  return d;
+}
+
+function bookAdminCard(b, idx, bare) {
+  const c = el('div', 'card');
+  if (!bare) c.id = 'bk-' + idx;
+  const all = issuesFor(b.title);
+  const wait = all.filter(i => stateOf(i) === 'wait').length;
+  const up = all.filter(isArrived).length;
+
+  /* v2.0: 접이식 안에서 열릴 때(bare)는 바로 위 요약줄에 이미 출판사·도서명·성우·RT가
+     있으므로 같은 정보를 반복하지 않습니다. 독립 카드로 쓸 때만 머리글을 그립니다. */
+  if (!bare) {
+    const hd = el('div', 'bhead');
+    hd.appendChild(bookTitleEl(b.pub, b.title));
+    if (b.abbr) hd.appendChild(el('span', 'chip gray', b.abbr));
+    if (b.editDue) {
+      const nE = dday(b.editDue);
+      hd.appendChild(el('span', 'chip' + (nE !== null && nE <= 3 ? ' redln' : ' gray'), '편집 마감 ' + b.editDue + (nE !== null ? ' · ' + ddayTxt(nE) : '')));
+    }
+    if (wait) hd.appendChild(el('span', 'pill p-wait', '판정 대기 ' + wait));
+    if (up) hd.appendChild(el('span', 'pill p-up', '도착 ' + up));
+    c.appendChild(hd);
+    const mt = bookMetaEl(b);
+    if (mt) c.appendChild(mt);
+  }
+
+  /* v2.3 — 이 도서의 각 채널 화면 바로가기 (그 사람이 보는 화면 그대로 새 탭) */
+  const qk = el('div', 'btns');
+  if (b.pub && pubLinkByName[b.pub]) qk.appendChild(openLink(pubLinkByName[b.pub], '출판사 화면 ↗'));
+  if (b.eng && engLinkByName[b.eng]) qk.appendChild(openLink(engLinkByName[b.eng], '엔지니어 ' + b.eng + ' 화면 ↗'));
+  if (b.reviewer && engLinkByName[b.reviewer]) qk.appendChild(openLink(engLinkByName[b.reviewer], '검수자 ' + b.reviewer + ' 화면 ↗'));
+  const seenA = {};
+  (b.cast || []).forEach(cs => {
+    const a = String(cs.actor || '').trim();
+    if (a && !seenA[a] && actorLinkByName[a]) { seenA[a] = 1; qk.appendChild(openLink(actorLinkByName[a], '성우 ' + a + ' 화면 ↗')); }
+  });
+  if (qk.children.length) c.appendChild(qk);
+
+  if (b._prod) {
+    c.appendChild(prodEditor(b._prod));
+  } else if (PROD) {
+    c.appendChild(el('div', 'fldlab', '제작 현황판 연동 — 프로젝트DB의 도서명을 선택하면 단계·체크·메모를 여기서 관리합니다'));
+    const r = el('div', 'frow');
+    const sel = document.createElement('select');
+    const o0 = document.createElement('option'); o0.value = ''; o0.textContent = '(연동 안 함)'; sel.appendChild(o0);
+    PROD.titles.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+    sel.value = '';
+    const mark = el('span', 'savemark', '');
+    sel.onchange = async () => {
+      sel.disabled = true; markBusy(mark);
+      try {
+        await srv('adminSetBookField', TOKEN, b.title, 'pdbTitle', sel.value);
+        b.pdbTitle = sel.value;
+        b._prod = sel.value ? (prodByTitle[sel.value] || null) : null;
+        markOk(mark);
+        renderBooks();
+      } catch (e) { markBad(mark, e); sel.disabled = false; }
+    };
+    r.appendChild(sel); r.appendChild(mark);
+    c.appendChild(r);
+  }
+
+  /* v3.1 — 설정류는 한 폴드로 접기.
+     펼친 카드가 [진행 단계·체크·공개 메모]처럼 매일 만지는 것부터 보이고,
+     가끔 만지는 설정(음악·그룹·러닝타임·담당자·완성본·편집 마감)은 눌러야 열립니다. */
+  const cfg = stickyFold('cfg:' + b.title,
+    '⚙ 설정 — 담당자 · 완성본 · 러닝타임 · 그룹 · 편집 마감 · 음악');
+
+  /* v2.4 — 음악 선곡 완료 표시 (담당 엔지니어 화면에 안내가 뜹니다) */
+  cfg.fin.appendChild(el('div', 'fldlab', '음악 선곡 — 완료로 표시하면 담당 엔지니어 화면에 안내가 나타납니다'));
+  const mrow = el('div', 'frow');
+  const mBtn = el('button', 'small', '');
+  const mMark = el('span', 'savemark', '');
+  const mTxt = el('span', 'meta', '');
+  const paintM = () => {
+    const on = !!(b.music || '').trim();
+    mBtn.textContent = on ? '✔ 음악 선곡 완료 — 해제하기' : '음악 선곡 완료로 표시';
+    mBtn.className = 'small' + (on ? ' okbtn' : '');
+    mTxt.textContent = on ? b.music : '아직 표시 전입니다.';
+  };
+  paintM();
+  mBtn.onclick = async () => {
+    const want = !(b.music || '').trim();
+    mBtn.disabled = true; markBusy(mMark);
+    try {
+      const r = await srv('adminSetMusic', TOKEN, b.title, want);
+      b.music = r.label || '';
+      paintM(); markOk(mMark);
+    } catch (e) { markBad(mMark, e); }
+    mBtn.disabled = false;
+  };
+  mrow.appendChild(mBtn); mrow.appendChild(mMark); mrow.appendChild(mTxt);
+  cfg.fin.appendChild(mrow);
+
+  /* v2.0 — 그룹(차수) 변경 */
+  cfg.fin.appendChild(el('div', 'fldlab', '그룹(차수) — 도서 관리 목록에서 이 이름으로 묶여 표시됩니다'));
+  const gr = el('div', 'frow');
+  const gSel = document.createElement('select');
+  const gNames = [];
+  DATA.books.forEach(x => { const g = (x.group || '미분류').trim(); if (g && gNames.indexOf(g) < 0) gNames.push(g); });
+  gNames.sort((a, x) => a.localeCompare(x, 'ko'));
+  gNames.forEach(g => { const o = document.createElement('option'); o.value = g; o.textContent = g; gSel.appendChild(o); });
+  const gNew = document.createElement('option');
+  gNew.value = '__new__'; gNew.textContent = '＋ 새 그룹 만들기';
+  gSel.appendChild(gNew);
+  gSel.value = (b.group || '미분류').trim() || '미분류';
+  const gIn = document.createElement('input');
+  gIn.type = 'text'; gIn.placeholder = '예: 2026년 한국출판인회의'; gIn.style.width = '200px'; gIn.style.display = 'none';
+  const gMark = el('span', 'savemark', '');
+  const gSave = el('button', 'small', '그룹 저장');
+  gSel.onchange = () => {
+    const isNew = gSel.value === '__new__';
+    gIn.style.display = isNew ? '' : 'none';
+    if (isNew) gIn.focus();
+  };
+  gSave.onclick = async () => {
+    const name = gSel.value === '__new__' ? gIn.value.trim() : gSel.value;
+    if (!name) { markBad(gMark, { message: '그룹 이름을 입력하세요' }); return; }
+    gSave.disabled = true; markBusy(gMark);
+    try {
+      await srv('adminSetBookGroup', TOKEN, b.title, name);
+      b.group = name;
+      markOk(gMark);
+      renderBooks();
+    } catch (e) { markBad(gMark, e); gSave.disabled = false; }
+  };
+  gr.appendChild(gSel); gr.appendChild(gIn); gr.appendChild(gSave); gr.appendChild(gMark);
+  cfg.fin.appendChild(gr);
+
+  /* QC 관리: 검수 단계 · 완성본 · 엔지니어 */
+  /* v2.5 — 러닝타임 두 가지.
+     예상 RT는 대표님만 보고, 확정 RT를 채우면 담당 엔지니어 화면에도 표시됩니다. */
+  cfg.fin.appendChild(el('div', 'fldlab', '러닝타임 — 예상은 대표 전용 · 확정을 넣으면 담당 엔지니어에게도 보입니다'));
+  const rtRow = el('div', 'frow');
+  const mkRt = (labTxt, field, cur, ph) => {
+    const box = el('div');
+    box.style.cssText = 'display:flex;align-items:center;gap:6px';
+    box.appendChild(el('span', 'meta', labTxt));
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.value = cur || ''; inp.placeholder = ph; inp.style.width = '150px';
+    const mk2 = el('span', 'savemark', '');
+    const sv = el('button', 'small', '저장');
+    sv.onclick = async () => {
+      sv.disabled = true; markBusy(mk2);
+      try {
+        await srv('adminSetBookField', TOKEN, b.title, field, inp.value.trim());
+        if (field === 'rt') b.rt = inp.value.trim(); else b.rtEst = inp.value.trim();
+        markOk(mk2); renderBooks();
+      } catch (e) { markBad(mk2, e); }
+      sv.disabled = false;
+    };
+    box.appendChild(inp); box.appendChild(sv); box.appendChild(mk2);
+    rtRow.appendChild(box);
+  };
+  mkRt('예상 🔒', 'rtEst', b.rtEst, '예) 8시간 20분');
+  mkRt('확정', 'rt', b.rt, '녹음 완료 후 입력');
+  cfg.fin.appendChild(rtRow);
+
+  cfg.fin.appendChild(el('div', 'fldlab', 'QC 관리 — 검수 단계 · 담당 엔지니어 · 담당 검수자 · 완성본 링크'));
+  const q = el('div', 'frow');
+  const stSel = document.createElement('select');
+  (DATA.stages || []).forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = '검수: ' + s; stSel.appendChild(o); });
+  if (b.stage && (DATA.stages || []).indexOf(b.stage) < 0) { const o = document.createElement('option'); o.value = b.stage; o.textContent = '검수: ' + b.stage; stSel.appendChild(o); }
+  stSel.value = b.stage || (DATA.stages || [])[0] || '';
+  const stMark = el('span', 'savemark', '');
+  stSel.onchange = async () => {
+    stSel.disabled = true; markBusy(stMark);
+    try { await srv('adminSetBookField', TOKEN, b.title, 'stage', stSel.value); b.stage = stSel.value; markOk(stMark); }
+    catch (e) { stSel.value = b.stage; markBad(stMark, e); }
+    stSel.disabled = false;
+  };
+  q.appendChild(stSel);
+
+  const engSel = document.createElement('select');
+  const e0 = document.createElement('option'); e0.value = ''; e0.textContent = '엔지니어 (미정)'; engSel.appendChild(e0);
+  DATA.engineers.forEach(nm => { const o = document.createElement('option'); o.value = nm; o.textContent = '엔지니어: ' + nm; engSel.appendChild(o); });
+  if (b.eng && DATA.engineers.indexOf(b.eng) < 0 && b.eng.trim()) { const o = document.createElement('option'); o.value = b.eng; o.textContent = '엔지니어: ' + b.eng; engSel.appendChild(o); }
+  engSel.value = b.eng || '';
+  const engMark = el('span', 'savemark', '');
+  engSel.onchange = async () => {
+    engSel.disabled = true; markBusy(engMark);
+    try { await srv('adminSetEngineer', TOKEN, b.title, engSel.value); b.eng = engSel.value; markOk(engMark); }
+    catch (e) { engSel.value = b.eng; markBad(engMark, e); }
+    engSel.disabled = false;
+  };
+  q.appendChild(engSel);
+
+  const revSel = document.createElement('select');
+  const r0 = document.createElement('option'); r0.value = ''; r0.textContent = '검수자 (미정)'; revSel.appendChild(r0);
+  (DATA.reviewers || []).forEach(nm => { const o = document.createElement('option'); o.value = nm; o.textContent = '검수자: ' + nm; revSel.appendChild(o); });
+  if (b.reviewer && (DATA.reviewers || []).indexOf(b.reviewer) < 0 && b.reviewer.trim()) { const o = document.createElement('option'); o.value = b.reviewer; o.textContent = '검수자: ' + b.reviewer; revSel.appendChild(o); }
+  revSel.value = b.reviewer || '';
+  const revMark = el('span', 'savemark', '');
+  revSel.onchange = async () => {
+    revSel.disabled = true; markBusy(revMark);
+    try {
+      await srv('adminSetBookField', TOKEN, b.title, 'reviewer', revSel.value);
+      b.reviewer = revSel.value;
+      /* v3.0 — 검수자 화면은 열려 있어도 자동으로 갱신되지 않습니다.
+         이미 화면을 켜둔 검수자라면 [🔄 담당 도서 새로고침] 버튼을 눌러야 방금 배정한 도서가 보입니다. */
+      markOk(revMark, revSel.value ? '저장됨 — 상대방 화면이 열려있다면 새로고침 필요' : '저장됨 ✓');
+    }
+    catch (e) { revSel.value = b.reviewer; markBad(revMark, e); }
+    revSel.disabled = false;
+  };
+  q.appendChild(revSel); q.appendChild(stMark); q.appendChild(engMark); q.appendChild(revMark);
+  cfg.fin.appendChild(q);
+
+  const q2 = el('div', 'frow'); q2.style.marginTop = '7px';
+  const fin = document.createElement('input');
+  fin.type = 'text'; fin.placeholder = '완성본(초안) 드라이브 링크 — 저장하면 열람 공유까지 자동 설정';
+  fin.style.flex = '1'; fin.style.minWidth = '220px';
+  fin.value = b.finalUrl || '';
+  const finB = el('button', 'small', '저장');
+  const finMark = el('span', 'savemark', '');
+  finB.onclick = async () => {
+    finB.disabled = true; markBusy(finMark);
+    try {
+      const res = await srv('adminSetBookField', TOKEN, b.title, 'final', fin.value.trim());
+      b.finalUrl = fin.value.trim();
+      markOk(finMark, res.shared === 'fail' ? '저장됨 — 공유 설정은 실패, 드라이브에서 수동 확인' : '저장됨 ✓ 공유 설정 완료');
+    } catch (e) { markBad(finMark, e); }
+    finB.disabled = false;
+  };
+  q2.appendChild(fin); q2.appendChild(finB); q2.appendChild(finMark);
+  cfg.fin.appendChild(q2);
+
+  cfg.fin.appendChild(editDueRow(b));
+  c.appendChild(cfg.d);
+
+  c.appendChild(memoFold(b));
+
+  /* 캐스팅 */
+  const cd = document.createElement('details');
+  cd.className = 'fold';
+  const csm = document.createElement('summary');
+  csm.textContent = '캐스팅 (' + (b.cast ? b.cast.length : 0) + '역) — 성우 배정·역할 추가';
+  cd.appendChild(csm);
+  const cin = el('div', 'fin');
+  (b.cast || []).forEach(cst => cin.appendChild(castLine(b, cst)));
+  if (!(b.cast || []).length) cin.appendChild(el('div', 'msg', '등록된 역할이 없습니다 — 아래에서 추가하세요.'));
+  const addr = el('div', 'frow'); addr.style.marginTop = '8px';
+  const roleSel = document.createElement('select');
+  (DATA.roles || []).forEach(rr => { const o = document.createElement('option'); o.value = rr; o.textContent = '역할: ' + rr; roleSel.appendChild(o); });
+  /* v2.0: 목록에 없는 새 성우도 직접 입력 — 저장하면 성우 탭에도 등록됩니다 */
+  const actSel = document.createElement('select');
+  const a0 = document.createElement('option'); a0.value = ''; a0.textContent = '성우 선택'; actSel.appendChild(a0);
+  DATA.actors.forEach(nm => { const o = document.createElement('option'); o.value = nm; o.textContent = nm; actSel.appendChild(o); });
+  const aNew = document.createElement('option');
+  aNew.value = '__new__'; aNew.textContent = '＋ 직접 입력 (새 성우)';
+  actSel.appendChild(aNew);
+  const actIn = document.createElement('input');
+  actIn.type = 'text'; actIn.placeholder = '새 성우 이름'; actIn.style.width = '130px'; actIn.style.display = 'none';
+  actSel.onchange = () => {
+    const isNew = actSel.value === '__new__';
+    actIn.style.display = isNew ? '' : 'none';
+    if (isNew) actIn.focus();
+  };
+  const addB = el('button', 'small', '역할 추가');
+  const addMark = el('span', 'savemark', '');
+  addB.onclick = async () => {
+    const isNew = actSel.value === '__new__';
+    const name = isNew ? actIn.value.trim() : actSel.value;
+    if (!name) { markBad(addMark, { message: isNew ? '새 성우 이름을 입력하세요' : '성우를 선택하세요' }); return; }
+    addB.disabled = true; markBusy(addMark);
+    try {
+      if (isNew) {
+        await srv('adminAddActor', TOKEN, name);
+        if (DATA.actors.indexOf(name) < 0) DATA.actors.push(name);
+      }
+      await srv('adminSetCast', TOKEN, b.title, roleSel.value, name);
+      b.cast = b.cast || [];
+      b.cast.push({ role: roleSel.value, actor: name, method: '', note: '' });
+      markOk(addMark);
+      if (isNew) {
+        alert('『' + name + '』 성우 등록 완료 — 개인 대시보드 링크가 즉시 발급되었습니다 (성우 탭 E열에서 확인).\n\n아이디·비밀번호로 로그인하게 하려면 시트 메뉴 [⑬ 로그인 계정 발급]도 함께 실행해 주세요.');
+      }
+      renderBooks();
+    } catch (e) { markBad(addMark, e); addB.disabled = false; }
+  };
+  addr.appendChild(roleSel); addr.appendChild(actSel); addr.appendChild(actIn); addr.appendChild(addB); addr.appendChild(addMark);
+  cin.appendChild(addr);
+  cd.appendChild(cin);
+  c.appendChild(cd);
+
+  c.appendChild(sampleFold(b));
+  c.appendChild(audioFold(b));
+  c.appendChild(reviewFold(b));   /* v2.7 — 대표 직접 검수 (플레이어 · 원고 · 기록) */
+
+  /* 링크 */
+  const lr = el('div', 'frow'); lr.style.marginTop = '11px';
+  [[b.folderUrl, '도서 폴더'], [b.msUrl, '01_원고·원본'], [b.origUrl, '02_편집본'], [b.recUrl, '03_재녹음'],
+   [b.refUrl, '04_레퍼런스'], [b.qaUrl, '05_내부검수용'], [b.pubqaUrl, '06_출판사용'], [b.finalUrl, '완성본 링크']].forEach(l => {
+    if (!l[0]) return;
+    const a = document.createElement('a');
+    a.className = 'linkbtn'; a.href = l[0]; a.target = '_blank'; a.textContent = l[1];
+    lr.appendChild(a);
+  });
+  const pl = pubLinkByName[b.pub];
+  if (pl) {
+    const a = document.createElement('a');
+    a.className = 'linkbtn'; a.href = pl; a.target = '_blank'; a.textContent = '출판사 페이지 보기';
+    lr.appendChild(a);
+  }
+  const qb = el('button', 'small', '이 도서 수정·검수 →');
+  qb.onclick = () => go('qc', { f: 'all', fBook: b.title });
+  lr.appendChild(qb);
+  c.appendChild(lr);
+  return c;
+}
+
+/** v1.9: 오디오북 파일 모니터 — 05(내부검수용)·06(출판사용) 폴더의 파일을 펼칠 때 불러와 바로 재생 */
+function audioFold(b) {
+  const d = document.createElement('details');
+  d.className = 'fold';
+  const smy = document.createElement('summary');
+  smy.textContent = '오디오북 파일 듣기 — 05 내부검수용 · 06 출판사용';
+  d.appendChild(smy);
+  const body = el('div', 'fin');
+  d.appendChild(body);
+  let loaded = false;
+  d.addEventListener('toggle', async () => {
+    if (!d.open || loaded) return;
+    loaded = true;
+    body.textContent = '파일 목록 불러오는 중…';
+    try {
+      const [qa, pu] = await Promise.all([
+        srv('listBookAudio', TOKEN, b.title, 'qa'),
+        srv('listBookAudio', TOKEN, b.title, 'pub')
+      ]);
+      body.innerHTML = '';
+      body.appendChild(audioListBlock('내부검수용 (05)', qa, b.qaUrl,
+        '아직 파일이 없습니다 — 엔지니어가 05 폴더에 올리면 여기 나타납니다.'));
+      body.appendChild(audioListBlock('출판사용 (06)', pu, b.pubqaUrl,
+        '아직 파일이 없습니다 — 06 폴더에 올리면 출판사 초안 검수 화면에 자동으로 뜹니다.'));
+    } catch (e) {
+      loaded = false;
+      body.textContent = (e && e.message) || '목록을 불러오지 못했습니다 — 다시 펼쳐 재시도해 주세요.';
+    }
+  });
+  return d;
+}
+
+/** 기본 오디오 플레이어 + 실패 시 드라이브 미리보기 폴백 (v1.9.1) */
+/* v2.4 — 재생 안정화.
+   기존에는 다운로드 URL 하나만 써서 느리거나 실패하는 일이 잦았고, 폴백 iframe이 132px이라
+   컨트롤이 잘려 보였습니다. 이제 설정!B10의 Drive API 키가 있으면 정식 스트리밍 주소를 먼저 쓰고,
+   순서대로 폴백하며, 마지막 iframe은 잘리지 않는 높이로 띄웁니다. */
+function audioSrcs(fid) {
+  const u = [];
+  if (DATA.apiKey) u.push('https://www.googleapis.com/drive/v3/files/' + fid + '?alt=media&key=' + encodeURIComponent(DATA.apiKey));
+  u.push('https://drive.usercontent.google.com/download?id=' + fid + '&export=download&confirm=t');
+  return u;
+}
+
+function dlLink(fid, label) {
+  const a = document.createElement('a');
+  a.className = 'linkbtn'; a.style.marginTop = '8px';
+  a.href = 'https://drive.google.com/file/d/' + fid + '/view';
+  a.target = '_blank'; a.rel = 'noopener';
+  a.textContent = label || '새 탭에서 듣기 ↗';
+  return a;
+}
+
+function inlineAudio(fid) {
+  const w = el('div');
+  const a = document.createElement('audio');
+  a.controls = true; a.preload = 'metadata';
+  a.style.cssText = 'width:100%;margin-top:6px;display:block;';
+  const srcs = audioSrcs(fid);
+  let ix = 0;
+  a.src = srcs[0];
+  a.onerror = () => {
+    ix++;
+    if (ix < srcs.length) { a.src = srcs[ix]; try { a.load(); } catch (e) {} return; }
+    a.remove();
+    const fr = document.createElement('iframe');
+    fr.className = 'finframe'; fr.allow = 'autoplay';
+    fr.style.height = '400px';
+    fr.src = 'https://drive.google.com/file/d/' + fid + '/preview';
+    w.appendChild(fr);
+    w.appendChild(el('div', 'meta', '드라이브 플레이어로 표시 중입니다. 재생이 안 되면 [새 탭에서 듣기]로 열어 주세요. 방금 올린 파일은 구글이 처리 중이라 몇 분 뒤부터 재생되기도 합니다.'));
+  };
+  w.appendChild(a);
+  w.appendChild(dlLink(fid));
+  return w;
+}
+
+function audioListBlock(label, p, folderUrl, emptyMsg) {
+  const w = el('div');
+  w.style.marginBottom = '12px';
+  w.appendChild(el('div', 'fldlab', label));
+  const files = (p && p.mode === 'folder') ? (p.files || []) :
+                (p && p.mode === 'file') ? [{ id: p.id, name: p.name }] : [];
+  if (!files.length) {
+    w.appendChild(el('div', 'meta', p && p.mode === 'none' && !folderUrl
+      ? '폴더가 아직 없습니다 — 시트 메뉴 [② 도서 폴더 준비]를 실행해 주세요.' : emptyMsg));
+  } else {
+    files.forEach((f, idx) => {
+      const row = el('div');
+      row.style.cssText = 'padding:6px 0;border-bottom:1px solid #eee;';
+      const btn = el('button', 'small', '▶ ' + (idx + 1) + '. ' + f.name);
+      btn.style.maxWidth = '100%';
+      btn.style.overflow = 'hidden';
+      btn.style.textOverflow = 'ellipsis';
+      btn.onclick = () => {
+        const ex = row.querySelector('.aud');
+        if (ex) { ex.remove(); return; }
+        w.querySelectorAll('.aud').forEach(x => x.remove()); // 한 번에 하나만 재생
+        const holder = inlineAudio(f.id);
+        holder.className = 'aud';
+        row.appendChild(holder);
+      };
+      row.appendChild(btn);
+      w.appendChild(row);
+    });
+  }
+  if (folderUrl) {
+    const a = document.createElement('a');
+    a.className = 'linkbtn'; a.href = folderUrl; a.target = '_blank';
+    a.style.marginTop = '6px'; a.textContent = '폴더 열기';
+    w.appendChild(a);
+  }
+  return w;
+}
+
+/** 성우 샘플 — 등록하면 출판사 페이지 [성우 최종 선정] 팝업에서 바로 듣고 확정 가능 */
+function sampleFold(b) {
+  const list = (DATA.samples || {})[b.title] || [];
+  const d = document.createElement('details');
+  d.className = 'fold';
+  const key = 'smp:' + b.title;
+  d.open = !!openState[key];
+  d.addEventListener('toggle', () => { openState[key] = d.open; });
+  const smy = document.createElement('summary');
+  smy.textContent = '성우 샘플 (' + list.length + '개) — 등록하면 출판사가 페이지에서 듣고 확정합니다';
+  d.appendChild(smy);
+  const fin = el('div', 'fin');
+
+  list.forEach(sm => {
+    const line = el('div', 'castline');
+    if (sm.role) line.appendChild(el('span', 'role', sm.role));
+    line.appendChild(el('b', null, sm.actor));
+    line.appendChild(el('span', 'method', sm.label));
+    if (sm.link) {
+      const a = document.createElement('a');
+      a.className = 'linkbtn'; a.href = sm.link; a.target = '_blank'; a.textContent = '듣기';
+      line.appendChild(a);
+    }
+    const delB = el('button', 'small', '삭제');
+    const dm = el('span', 'savemark', '');
+    delB.onclick = async () => {
+      delB.disabled = true; markBusy(dm);
+      try {
+        await srv('adminDelSample', TOKEN, b.title, sm.actor, sm.label);
+        DATA.samples[b.title] = (DATA.samples[b.title] || []).filter(x => !(x.actor === sm.actor && x.label === sm.label));
+        markOk(dm);
+        renderBooks();
+      } catch (e) { markBad(dm, e); delB.disabled = false; }
+    };
+    line.appendChild(delB); line.appendChild(dm);
+    fin.appendChild(line);
+  });
+  if (!list.length) fin.appendChild(el('div', 'msg', '등록된 샘플이 없습니다 — 아래에서 드라이브 링크로 추가하세요.'));
+
+  const addr = el('div', 'frow'); addr.style.marginTop = '8px';
+  const roleSel = document.createElement('select');
+  const ro0 = document.createElement('option'); ro0.value = ''; ro0.textContent = '역할 (선택)'; roleSel.appendChild(ro0);
+  (DATA.roles || []).forEach(rr => { const o = document.createElement('option'); o.value = rr; o.textContent = rr; roleSel.appendChild(o); });
+  const actSel = document.createElement('select');
+  const a0 = document.createElement('option'); a0.value = ''; a0.textContent = '성우 선택'; actSel.appendChild(a0);
+  DATA.actors.forEach(nm => { const o = document.createElement('option'); o.value = nm; o.textContent = nm; actSel.appendChild(o); });
+  const labIn = document.createElement('input');
+  labIn.type = 'text'; labIn.placeholder = '버전 라벨 (예: 1번째)'; labIn.style.width = '130px';
+  const linkIn = document.createElement('input');
+  linkIn.type = 'text'; linkIn.placeholder = '샘플 오디오 드라이브 링크'; linkIn.style.flex = '1'; linkIn.style.minWidth = '180px';
+  const addB = el('button', 'small', '샘플 등록');
+  const am = el('span', 'savemark', '');
+  addB.onclick = async () => {
+    if (!actSel.value || !labIn.value.trim() || !linkIn.value.trim()) { markBad(am, { message: '성우·라벨·링크를 입력하세요' }); return; }
+    addB.disabled = true; markBusy(am);
+    try {
+      await srv('adminAddSample', TOKEN, { book: b.title, role: roleSel.value, actor: actSel.value, label: labIn.value.trim(), link: linkIn.value.trim() });
+      DATA.samples = DATA.samples || {};
+      (DATA.samples[b.title] = DATA.samples[b.title] || []).push({ role: roleSel.value, actor: actSel.value, label: labIn.value.trim(), link: linkIn.value.trim(), fid: '' });
+      markOk(am);
+      openState[key] = true;
+      renderBooks();
+    } catch (e) { markBad(am, e); addB.disabled = false; }
+  };
+  addr.appendChild(roleSel); addr.appendChild(actSel); addr.appendChild(labIn); addr.appendChild(linkIn); addr.appendChild(addB); addr.appendChild(am);
+  fin.appendChild(addr);
+  d.appendChild(fin);
+  return d;
+}
+
+function castLine(b, cst) {
+  const line = el('div', 'castline');
+  line.appendChild(el('span', 'role', cst.role));
+  const asel = document.createElement('select');
+  const a0 = document.createElement('option'); a0.value = ''; a0.textContent = '(미정)'; asel.appendChild(a0);
+  DATA.actors.forEach(nm => { const o = document.createElement('option'); o.value = nm; o.textContent = nm; asel.appendChild(o); });
+  if (cst.actor && DATA.actors.indexOf(cst.actor) < 0 && cst.actor.trim()) {
+    const o = document.createElement('option'); o.value = cst.actor; o.textContent = cst.actor; asel.appendChild(o);
+  }
+  asel.value = cst.actor || '';
+  const cm = el('span', 'savemark', '');
+  asel.onchange = async () => {
+    asel.disabled = true; markBusy(cm);
+    try { await srv('adminSetCast', TOKEN, b.title, cst.role, asel.value); cst.actor = asel.value; markOk(cm); }
+    catch (e) { asel.value = cst.actor; markBad(cm, e); }
+    asel.disabled = false;
+  };
+  line.appendChild(asel);
+  if (cst.method) line.appendChild(el('span', 'method', cst.method));
+  line.appendChild(cm);
+  return line;
+}
+
+function prodOnlyCard(p, bare) {
+  const c = el('div', 'card');
+  if (!bare) c.id = 'pdb-' + p.pid;
+  const hd = el('div', 'bhead');
+  hd.appendChild(el('span', 'tt', '『' + p.title + '』'));
+  hd.appendChild(el('span', 'sub', p.pub));
+  hd.appendChild(el('span', 'chip gray', 'QC 미등록'));
+  c.appendChild(hd);
+  c.appendChild(prodEditor(p));
+  return c;
+}
+
+/* ── 접힘 상태 유지 폴드 + 기한·메모 편집기 ── */
+const foldOpen = {};
+function stickyFold(key, label) {
+  const d = document.createElement('details');
+  d.className = 'fold';
+  d.open = !!foldOpen[key];
+  d.addEventListener('toggle', () => { foldOpen[key] = d.open; });
+  const sm = document.createElement('summary');
+  sm.textContent = label;
+  d.appendChild(sm);
+  const fin = el('div', 'fin');
+  d.appendChild(fin);
+  return { d: d, fin: fin };
+}
+
+function checkDueEditor(p) {
+  const f = stickyFold('due-' + p.pid, '체크 기한 설정 — 여기서 정한 날짜로 알림 메일이 나가고, 출판사 홈 알림·빨강 표시 기준이 됩니다');
+  p.checks.forEach(c => {
+    const r = el('div', 'frow'); r.style.marginTop = '6px';
+    r.appendChild(el('span', 'duelab', c.label.replace(/\s*\(.*\)$/, '')));
+    const cur = el('span', 'duecur', c.due ? '현재 ' + c.due : '기한 없음');
+    const inp = document.createElement('input'); inp.type = 'date';
+    const sv = el('button', 'small', '저장');
+    const cl = el('button', 'small', '지우기');
+    const mark = el('span', 'savemark', '');
+    sv.onclick = async () => {
+      if (!inp.value) { markBad(mark, { message: '날짜를 선택하세요' }); return; }
+      sv.disabled = true; markBusy(mark);
+      try {
+        const res = await srv('adminSetCheckDue', TOKEN, p.pid, c.key, inp.value, p.title);
+        c.due = res.due; cur.textContent = '현재 ' + res.due;
+        markOk(mark, '저장됨 ✓'); renderBooks(); renderBadges();
+      } catch (e) { markBad(mark, e); }
+      sv.disabled = false;
+    };
+    cl.onclick = async () => {
+      cl.disabled = true; markBusy(mark);
+      try {
+        await srv('adminSetCheckDue', TOKEN, p.pid, c.key, '', p.title);
+        c.due = ''; cur.textContent = '기한 없음';
+        markOk(mark); renderBooks(); renderBadges();
+      } catch (e) { markBad(mark, e); }
+      cl.disabled = false;
+    };
+    r.appendChild(cur); r.appendChild(inp); r.appendChild(sv); r.appendChild(cl); r.appendChild(mark);
+    f.fin.appendChild(r);
+  });
+  return f.d;
+}
+
+function editDueRow(b) {
+  const w = el('div');
+  w.appendChild(el('div', 'fldlab', '편집(외주) 마감 — 외주 편집 일정 확인용'));
+  const r = el('div', 'frow');
+  const cur = el('span', 'duecur', b.editDue ? '현재 ' + b.editDue : '기한 없음');
+  const inp = document.createElement('input'); inp.type = 'date';
+  const sv = el('button', 'small', '저장');
+  const cl = el('button', 'small', '지우기');
+  const mark = el('span', 'savemark', '');
+  sv.onclick = async () => {
+    if (!inp.value) { markBad(mark, { message: '날짜를 선택하세요' }); return; }
+    sv.disabled = true; markBusy(mark);
+    try {
+      await srv('adminSetBookField', TOKEN, b.title, 'editDue', inp.value);
+      const pt = inp.value.split('-');
+      b.editDue = (+pt[1]) + '/' + (+pt[2]);
+      cur.textContent = '현재 ' + b.editDue;
+      markOk(mark); renderBooks();
+    } catch (e) { markBad(mark, e); }
+    sv.disabled = false;
+  };
+  cl.onclick = async () => {
+    cl.disabled = true; markBusy(mark);
+    try {
+      await srv('adminSetBookField', TOKEN, b.title, 'editDue', '');
+      b.editDue = ''; cur.textContent = '기한 없음';
+      markOk(mark); renderBooks();
+    } catch (e) { markBad(mark, e); }
+    cl.disabled = false;
+  };
+  r.appendChild(cur); r.appendChild(inp); r.appendChild(sv); r.appendChild(cl); r.appendChild(mark);
+  w.appendChild(r);
+  return w;
+}
+
+function memoField(b, field, label, ph) {
+  const w = el('div'); w.style.marginTop = '9px';
+  const lb = el('div', 'fldlab', label + (String(b[field] || '').indexOf('[출판사 제출') === 0 ? '  ·  출판사 제출됨 ✓' : ''));
+  w.appendChild(lb);
+  const ta = document.createElement('textarea');
+  ta.value = b[field] || '';
+  ta.placeholder = ph || '';
+  w.appendChild(ta);
+  const r = el('div', 'frow'); r.style.marginTop = '5px';
+  const sv = el('button', 'small', '저장');
+  const mark = el('span', 'savemark', '');
+  sv.onclick = async () => {
+    sv.disabled = true; markBusy(mark);
+    try { await srv('adminSetBookField', TOKEN, b.title, field, ta.value); b[field] = ta.value; markOk(mark); }
+    catch (e) { markBad(mark, e); }
+    sv.disabled = false;
+  };
+  r.appendChild(sv); r.appendChild(mark);
+  w.appendChild(r);
+  return w;
+}
+
+function memoFold(b) {
+  const filled = ['reqNote', 'toneNote', 'titleNote', 'trailerNote'].filter(k => String(b[k] || '').trim()).length;
+  const f = stickyFold('memo-' + b.title, '내부 메모 (' + filled + '/4) — 당부 · 톤 · 타이틀 · 트레일러 (출판사가 페이지에서 제출한 내용도 여기 저장)');
+  f.fin.appendChild(memoField(b, 'reqNote', '출판사 당부·요청', '예) 각주는 모두 낭독 제외 요청'));
+  f.fin.appendChild(memoField(b, 'toneNote', '성우 톤 확정', '예) 메인 2번째 샘플 톤으로 진행'));
+  f.fin.appendChild(memoField(b, 'titleNote', '타이틀 페이지 정보', '책 제목 · 작가 표기 · 출판사 표기'));
+  f.fin.appendChild(memoField(b, 'trailerNote', '북트레일러 문구', '발췌 200자 내외 · 홍보 문구 · 로고 여부'));
+  return f.d;
+}
+
+/* ══════════════════ 수정·검수 (기존 판정 화면 이관) ══════════════════ */
+const QUICK = ['그냥 진행', '홈 재녹음', '스튜디오 녹음', '엔지니어 수정', '수정 불가'];
+const openState = {};
+const FLASH = {};
+
+/* v2.7 — 페이지·파일명·시간을 진한 칩으로 (흐린 회색 → 한눈에 보이게) */
+function locLine(i) {
+  const parts = [];
+  if (i.page) parts.push(['📖', i.page]);
+  if (i.file) parts.push(['📄', i.file]);
+  if (i.time) parts.push(['⏱', i.time]);
+  if (!parts.length) return null;
+  const w = el('div', 'locline');
+  parts.forEach(p => {
+    const c = el('span', 'locchip');
+    c.appendChild(el('span', 'ic', p[0]));
+    c.appendChild(document.createTextNode(p[1]));
+    w.appendChild(c);
+  });
+  return w;
+}
+
+function whoOf(i) {
+  const k = i.authorKind || '엔지니어';
+  if (k === '출판사') return 'pub';
+  if (k === '검수자') return 'rev';
+  if (k === '관리자') return 'adm';
+  return 'eng';
+}
+
+function matchFilter(i) {
+  if (S.fBook !== '*' && i.book !== S.fBook) return false;
+  if (S.fWho !== 'all' && whoOf(i) !== S.fWho) return false; // v2.4 작성자 필터
+  if (S.f === 'all') return true;
+  if (S.f === 'up') return isArrived(i);
+  return stateOf(i) === S.f;
+}
+
+function renderQc() {
+  const box = document.getElementById('tab-qc');
+  box.innerHTML = '';
+  box.appendChild(el('h2', 'sec', '수정·검수'));
+
+  const n = counts();
+  const st = el('div', 'stats');
+  [['총 이슈', n.total, ''], ['판정 대기 — 내 승인 필요', n.wait, n.wait ? 'warn' : '']].forEach(it => {
+    const s = el('div', 'stat' + (it[2] ? ' ' + it[2] : ''));
+    s.appendChild(el('b', null, String(it[1])));
+    s.appendChild(el('span', null, it[0]));
+    st.appendChild(s);
+  });
+  box.appendChild(st);
+
+  const fb = el('div', 'fbar');
+  const tabs = [['wait', '판정 대기'], ['all', '전체']];
+  if (S.f === 'up') tabs.splice(1, 0, ['up', '도착·반영 대기']);
+  if (S.f === 'prog') tabs.splice(1, 0, ['prog', '진행 중']);
+  tabs.forEach(f => {
+    const b = el('button', 'f' + (S.f === f[0] ? ' on' : ''), f[1]);
+    b.onclick = () => { S.f = f[0]; renderQc(); };
+    fb.appendChild(b);
+  });
+  const bs = document.createElement('select');
+  const b0 = document.createElement('option'); b0.value = '*'; b0.textContent = '모든 도서'; bs.appendChild(b0);
+  DATA.books.forEach(b => {
+    const cntB = issuesFor(b.title).length;
+    const o = document.createElement('option');
+    o.value = b.title; o.textContent = b.title + (cntB ? ' (' + cntB + ')' : '');
+    bs.appendChild(o);
+  });
+  bs.value = S.fBook;
+  bs.onchange = () => { S.fBook = bs.value; renderQc(); };
+  fb.appendChild(bs);
+  box.appendChild(fb);
+
+  /* v2.4 — 누가 쓴 기록인지로 걸러 보기 */
+  const wb = el('div', 'fbar');
+  wb.style.marginTop = '2px';
+  [['all', '작성자 전체'], ['eng', '엔지니어'], ['rev', '검수자'], ['pub', '출판사'], ['adm', '대표(직접 기록)']].forEach(k => {
+    const cntW = k[0] === 'all' ? DATA.issues.length : DATA.issues.filter(x => whoOf(x) === k[0]).length;
+    if (!cntW && k[0] !== 'all') return;
+    const b2 = el('button', 'f' + (S.fWho === k[0] ? ' on' : ''), k[1] + ' ' + cntW);
+    b2.onclick = () => { S.fWho = k[0]; renderQc(); };
+    wb.appendChild(b2);
+  });
+  box.appendChild(wb);
+
+  let shown = 0;
+  DATA.books.forEach(b => {
+    if (S.fBook !== '*' && b.title !== S.fBook) return;
+    const all = issuesFor(b.title);
+    const list = all.filter(matchFilter);
+    if (S.f !== 'all' && !list.length) return;
+    if (S.fBook === '*' && !all.length) return;
+    shown++;
+    box.appendChild(qcBookGroup(b, all, list));
+  });
+  if (!shown) box.appendChild(el('div', 'empty', '해당하는 항목이 없습니다.'));
+
+  const nt = el('p', 'note');
+  nt.textContent = '판정 안내: 홈 재녹음 → 성우 페이지 즉시 노출 (⑤ 알림 문구로 카톡 발송) · 엔지니어 수정 → 담당자 [작업 대기] 표시 + 메일 · 메모를 적고 판정하면 담당자 화면에 함께 전달 · 수정 불가/그냥 진행 → 출판사에는 "별도 안내"로만 표시.';
+  box.appendChild(nt);
+}
+
+/* v2.7 — 도서별 대표 검수 카드.
+   검수자 화면과 같은 구성: 위에 오디오 플레이어 + 원고 보기, 아래에 오류 기록 양식.
+   모든 도서 카드마다 하나씩 붙습니다. */
+function reviewFold(b) {
+  const d = document.createElement('details');
+  d.className = 'fold';
+  const key = 'rev:' + b.title;
+  d.open = !!openState[key];
+  d.addEventListener('toggle', () => { openState[key] = d.open; });
+  const smy = document.createElement('summary');
+  smy.textContent = '🎧 대표 검수 — 들으면서 오류 기록하기';
+  d.appendChild(smy);
+  const fin = el('div', 'fin');
+  d.appendChild(fin);
+
+  let built = false;
+  d.addEventListener('toggle', () => {
+    if (!d.open || built) return;
+    built = true;
+
+    /* ① 상단: 원고 보기 + 플레이어 */
+    const top = el('div', 'btns');
+    const msb = el('button', 'small', '📄 원고');
+    msb.onclick = () => toggleMs(b.title, msb);
+    top.appendChild(msb);
+    fin.appendChild(top);
+
+    const player = el('div');
+    player.appendChild(el('div', 'meta', '검수용 음원(05 폴더) 불러오는 중…'));
+    fin.appendChild(player);
+    srv('listBookAudio', TOKEN, b.title, 'qa').then(p => {
+      player.innerHTML = '';
+      const files = (p && p.mode === 'folder') ? (p.files || []) :
+                    (p && p.mode === 'file') ? [{ id: p.id, name: p.name }] : [];
+      if (!files.length) {
+        player.appendChild(el('div', 'meta', '05_(내부검수용) 폴더에 아직 파일이 없습니다.'));
+        return;
+      }
+      const sel = document.createElement('select');
+      sel.style.cssText = 'width:100%;margin:8px 0;padding:10px;font-size:13px;border:1px solid #dfe3e8;border-radius:9px;font-family:inherit';
+      files.forEach((f, ix) => {
+        const o = document.createElement('option'); o.value = f.id; o.textContent = (ix + 1) + '. ' + f.name;
+        sel.appendChild(o);
+      });
+      const slot = el('div');
+      const setTrk = () => {
+        slot.innerHTML = '';
+        slot.appendChild(inlineAudio(sel.value));
+        const f = files.filter(x => x.id === sel.value)[0];
+        if (f) fFile.value = f.name.replace(/\.[a-z0-9]+$/i, '');
+      };
+      sel.onchange = setTrk;
+      player.appendChild(sel); player.appendChild(slot);
+      setTrk();
+    }).catch(e => {
+      player.innerHTML = '';
+      player.appendChild(el('div', 'meta', '음원을 불러오지 못했습니다: ' + (e.message || e)));
+    });
+
+    /* ② 하단: 오류 기록 양식 */
+    fin.appendChild(el('div', 'fldlab', '오류 기록 — 작성자는 「대표」로 저장됩니다'));
+    const row = el('div', 'frow');
+    const stSel = document.createElement('select');
+    ['내부검수', '편집', '출판사검수'].forEach(v => {
+      const o = document.createElement('option'); o.value = v; o.textContent = v; stSel.appendChild(o);
+    });
+    const tySel = document.createElement('select');
+    (DATA.types || ['오독', '누락', '잡음', '기타']).forEach(v => {
+      const o = document.createElement('option'); o.value = v; o.textContent = v; tySel.appendChild(o);
+    });
+    const fFile = document.createElement('input'); fFile.placeholder = '파일명(챕터)'; fFile.style.width = '150px';
+    const fPage = document.createElement('input'); fPage.placeholder = '페이지'; fPage.style.width = '80px'; fPage.inputMode = 'numeric';
+    const fTime = document.createElement('input'); fTime.placeholder = '시간 (예 12:07)'; fTime.style.width = '110px';
+    [stSel, tySel, fFile, fPage, fTime].forEach(x => row.appendChild(x));
+    fin.appendChild(row);
+
+    const fLine = document.createElement('textarea');
+    fLine.placeholder = '대사 / 오류 내용';
+    fLine.style.cssText = 'width:100%;min-height:66px;margin-top:8px;padding:10px;border:1px solid #dfe3e8;border-radius:9px;font-family:inherit;font-size:13px';
+    fin.appendChild(fLine);
+
+    const bt = el('div', 'btns');
+    const sv = el('button', 'primary', '등록');
+    const mk2 = el('span', 'savemark', '');
+    sv.onclick = async () => {
+      if (!fLine.value.trim()) { markBad(mk2, { message: '내용을 입력해 주세요' }); return; }
+      sv.disabled = true; markBusy(mk2);
+      try {
+        const r = await srv('adminCreateIssue', TOKEN, {
+          book: b.title, stage: stSel.value, type: tySel.value,
+          file: fFile.value.trim(), page: fPage.value.trim(), time: fTime.value.trim(),
+          line: fLine.value.trim()
+        });
+        DATA.issues.unshift(r.issue);
+        fLine.value = ''; fPage.value = ''; fTime.value = '';
+        markOk(mk2, '등록됨 ✓');
+        const cnt = fin.querySelector('.revcnt');
+        if (cnt) cnt.textContent = '이 도서 기록 ' + issuesFor(b.title).length + '건';
+      } catch (e) { markBad(mk2, e); }
+      sv.disabled = false;
+    };
+    bt.appendChild(sv); bt.appendChild(mk2);
+    const cnt = el('span', 'meta revcnt', '이 도서 기록 ' + issuesFor(b.title).length + '건');
+    bt.appendChild(cnt);
+    fin.appendChild(bt);
+  });
+  return d;
+}
+
+function qcBookGroup(b, all, list) {
+  const d = document.createElement('details');
+  d.className = 'grp';
+  const key = b.title;
+  const wait = all.filter(i => stateOf(i) === 'wait').length;
+  const up = all.filter(isArrived).length;
+  d.open = (key in openState) ? openState[key] : (S.f === 'wait' ? wait > 0 : wait + up > 0);
+  d.addEventListener('toggle', () => { openState[key] = d.open; });
+
+  const s = document.createElement('summary');
+  const r = el('div', 'sumrow');
+  r.appendChild(el('span', 'tt', '『' + b.title + '』'));
+  if (b.eng) r.appendChild(el('span', 'pill p-eng', b.eng));
+  const msb = el('button', 'small', '📄 원고');
+  msb.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); toggleMs(b.title, msb); };
+  r.appendChild(msb);
+  /* v2.6 — 이 도서의 도서 관리 카드로 바로 이동 */
+  const gob = el('button', 'small', '도서 관리 →');
+  gob.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); gotoBookCard(b.title); };
+  r.appendChild(gob);
+  if (wait) r.appendChild(el('span', 'pill p-wait', '판정 대기 ' + wait));
+  if (up) r.appendChild(el('span', 'pill p-up', '도착 ' + up));
+  if (!wait && !up && all.length) r.appendChild(el('span', 'pill p-done', '이슈 ' + all.length + '건 정리됨'));
+  if (!all.length) r.appendChild(el('span', 'pill', '이슈 없음'));
+  s.appendChild(r);
+  d.appendChild(s);
+
+  const inner = el('div', 'ginner');
+  if (!list.length) inner.appendChild(el('div', 'empty', S.f === 'all' ? '기록된 이슈가 없습니다.' : '이 필터에 해당하는 이슈가 없습니다.'));
+  else {
+    const order = { wait: 0, prog: 1, done: 2 };
+    const sorted = list.slice().sort((a, x) => (order[stateOf(a)] - order[stateOf(x)]));
+    /* v3.1 — 한 번에 15장씩만: 한 도서에 수십 건이 쌓여도 화면이 통째로 길어지지 않게 */
+    const BATCH = 15;
+    let shownN = 0;
+    const moreB = el('button', 'small', '');
+    moreB.style.cssText = 'display:block;width:100%;margin-top:10px;';
+    const addBatch = () => {
+      sorted.slice(shownN, shownN + BATCH).forEach(i => inner.insertBefore(issueCard(i), moreB));
+      shownN = Math.min(shownN + BATCH, sorted.length);
+      if (shownN >= sorted.length) moreB.remove();
+      else moreB.textContent = '더 보기 — 남은 ' + (sorted.length - shownN) + '건';
+    };
+    moreB.onclick = addBatch;
+    inner.appendChild(moreB);
+    addBatch();
+  }
+  d.appendChild(inner);
+  return d;
+}
+
+function issueStatus(i) {
+  if (i.applied === '반영완료') return { cls: 'done', label: '반영 처리됨' };
+  /* v3.1 — 도착 시각을 상태 배지에 합쳐 별도 중복 칩을 없앴습니다 */
+  if (isArrived(i)) return { cls: 'up', label: '수정 녹음 도착' + (i.upTime ? ' · ' + i.upTime : '') };
+  if (i.recstat === '요청됨') return { cls: 'req', label: '재녹음 진행 중' };
+  const st = stateOf(i);
+  if (st === 'wait') return { cls: 'wait', label: '판정 대기' };
+  if (st === 'done') return { cls: 'done', label: '판정: ' + (i.verdict || '') + ' · 종결' };
+  return { cls: 'req', label: '판정: ' + (i.verdict || '') };
+}
+
+function issueCard(i) {
+  const c = el('div', 'item');
+  const st8 = issueStatus(i);
+  c.classList.add('st-' + st8.cls);
+  const r = el('div', 'row');
+  r.appendChild(el('span', 'stbadge sb-' + st8.cls, st8.label));
+  r.appendChild(el('span', 'idb', i.id));
+  /* v2.4 — 누가 쓴 기록인지 항상 표시 */
+  const wk = whoOf(i);
+  r.appendChild(el('span', 'who w-' + wk,
+    i.authorLabel || (wk === 'pub' ? '출판사' : wk === 'rev' ? '검수자' : '엔지니어')));
+  if (i.stage === '출판사검수') r.appendChild(el('span', 'pill p-pub', '출판사 피드백'));
+  else if (i.stage === '내부검수') r.appendChild(el('span', 'pill p-int', '내부검수'));
+  if (i.type) r.appendChild(el('span', 'pill p-type', i.type));
+  /* v3.1 — 상태 중복 칩 제거: 예전에는 왼쪽 상태 배지와 같은 내용(판정 대기·도착 등)의
+     pill이 한 줄에 두 번 찍혔습니다. 상태는 왼쪽 배지 하나로만 표시합니다. */
+  c.appendChild(r);
+
+  const sn = i.line || i.err;
+  if (sn) c.appendChild(el('div', 'snippet', sn));
+  const ll = locLine(i);
+  if (ll) c.appendChild(ll);
+  const noteClean = String(i.note || '').split('\n').filter(l => l.indexOf('[대표 메모]') !== 0).join(' · ');
+  const meta = [i.character && ('캐릭터 ' + i.character),
+    i.role && (i.role + ' · ' + i.actor), noteClean].filter(Boolean).join(' · ');
+  if (meta) c.appendChild(el('div', 'meta', meta));
+  const am = adminMemoOf(i);
+  if (am) c.appendChild(el('div', 'adminmemo', '💬 담당자에게 전달된 메모: ' + am));
+  /* v2.4 — 엔지니어가 수정 완료를 보고했으면 확인 클립과 함께 표시 */
+  if (i.fixAt) {
+    const fx = el('div', 'fixnote');
+    fx.appendChild(el('b', null, '✔ 엔지니어 수정 완료 보고 · ' + i.fixAt));
+    c.appendChild(fx);
+    if (i.fixUrl) {
+      const fid2 = String(i.fixUrl).match(/[-\w]{25,}/);
+      if (fid2) {
+        const fb2 = el('div', 'btns');
+        const pb2 = el('button', null, '▶ 수정 확인 클립 듣기 (앞뒤 맥락)');
+        pb2.onclick = () => {
+          const ex = c.querySelector('.fixwrap');
+          if (ex) { ex.remove(); return; }
+          const w2 = el('div', 'fixwrap');
+          w2.appendChild(inlineAudio(fid2[0]));
+          c.insertBefore(w2, msg);
+        };
+        fb2.appendChild(pb2);
+        c.appendChild(fb2);
+      }
+    }
+  }
+
+  const msg = el('div', 'msg', '');
+  if (FLASH[i.id]) {
+    msg.className = 'msg ok';
+    msg.textContent = FLASH[i.id];
+    delete FLASH[i.id];
+  }
+
+  const play = el('div', 'btns');
+  if (i.hasRef) {
+    play.appendChild(audioBtn(c, msg, i, 'ref', '▶ 클립 듣기'));
+    if (i.refUrl && i.refUrl.indexOf('http') === 0) play.appendChild(openLink(i.refUrl, '열기'));
+  }
+  if (i.hasUp) {
+    play.appendChild(audioBtn(c, msg, i, 'up', '▶ 수정 녹음 듣기'));
+    if (i.upUrl && i.upUrl.indexOf('http') === 0) play.appendChild(openLink(i.upUrl, '열기'));
+  }
+  if (!i.hasRef && finalRefByBook[i.book]) {
+    play.appendChild(finalBtn(c, msg, i, finalRefByBook[i.book]));
+  }
+  if (play.children.length) c.appendChild(play);
+
+  const vb = el('div', 'btns');
+  QUICK.forEach(v => {
+    const btn = el('button', 'v' + (i.verdict === v ? ' sel' : ''), v);
+    btn.onclick = () => setVerdict(i, v, c, msg);
+    vb.appendChild(btn);
+  });
+  const more = document.createElement('select');
+  const mo = document.createElement('option'); mo.value = ''; mo.textContent = '그 외…'; more.appendChild(mo);
+  DATA.verdicts.filter(v => QUICK.indexOf(v) < 0).forEach(v => {
+    const o = document.createElement('option'); o.value = v; o.textContent = v + (i.verdict === v ? ' ✓' : ''); more.appendChild(o);
+  });
+  more.onchange = () => { if (more.value) { setVerdict(i, more.value, c, msg); more.value = ''; } };
+  vb.appendChild(more);
+
+  const memoBtn = el('button', 'small', am ? '메모 ✎' : '메모');
+  vb.appendChild(memoBtn);
+
+  if (i.applied !== '반영완료' && (i.recstat === '업로드완료' || i.verdict === '엔지니어 수정')) {
+    const done = el('button', 'done', '반영완료 처리');
+    done.onclick = async () => {
+      done.disabled = true; done.textContent = '처리 중…';
+      try {
+        await srv('adminMarkApplied', TOKEN, i.id);
+        i.applied = '반영완료';
+        if (i.recstat === '업로드완료') i.recstat = '반영완료';
+        FLASH[i.id] = i.id + ' 반영완료 처리됨';
+        renderBadges(); renderQc();
+      } catch (e) { done.disabled = false; done.textContent = '반영완료 처리'; msg.className = 'msg bad'; msg.textContent = e.message || String(e); }
+    };
+    vb.appendChild(done);
+  }
+
+  /* v3.1 — 이미 종결된 건은 판정 버튼 줄을 접어 둡니다 (필요하면 [판정 변경]으로 열기).
+     전체 보기에서 처리 끝난 카드마다 버튼 7개가 반복되던 소음을 없앱니다. */
+  if (st8.cls === 'done') {
+    vb.style.display = 'none';
+    const tg = el('button', 'small', '판정 변경 · 메모 열기');
+    tg.style.marginTop = '9px';
+    tg.onclick = () => {
+      const hidden = vb.style.display === 'none';
+      vb.style.display = hidden ? '' : 'none';
+      tg.textContent = hidden ? '판정 버튼 접기' : '판정 변경 · 메모 열기';
+    };
+    c.appendChild(tg);
+  }
+  c.appendChild(vb);
+
+  /* 담당자 메모 — 판정과 함께 저장되거나 [메모만 전달]로 즉시 발송 */
+  const mb = el('div', 'memobox');
+  mb.style.display = 'none';
+  const ta = document.createElement('textarea');
+  ta.className = 'memoTa';
+  ta.placeholder = '엔지니어에게 전달할 메모 — 판정 버튼을 누르면 함께 저장됩니다. 판정 없이 보내려면 아래 [메모만 전달].';
+  ta.value = am;
+  mb.appendChild(ta);
+  const mrow = el('div', 'btns');
+  const sendB = el('button', 'small', '메모만 전달 (화면+메일)');
+  sendB.onclick = async () => {
+    sendB.disabled = true; sendB.textContent = '전달 중…';
+    try {
+      const res = await srv('adminSendIssueMemo', TOKEN, i.id, ta.value.trim());
+      setLocalAdminMemo(i, res.memo);
+      FLASH[i.id] = res.memo ? '메모 전달됨 — 담당자 화면과 메일에 표시됩니다' : '메모를 지웠습니다';
+      renderQc();
+    } catch (e) { sendB.disabled = false; sendB.textContent = '메모만 전달 (화면+메일)'; msg.className = 'msg bad'; msg.textContent = e.message || String(e); }
+  };
+  mrow.appendChild(sendB);
+  mb.appendChild(mrow);
+  memoBtn.onclick = () => {
+    mb.style.display = mb.style.display === 'none' ? '' : 'none';
+    if (mb.style.display === '') ta.focus();
+  };
+  c.appendChild(mb);
+
+  c.appendChild(msg);
+  return c;
+}
+
+function openLink(url, label) {
+  const a = document.createElement('a');
+  a.className = 'linkbtn'; a.href = url; a.target = '_blank'; a.textContent = label;
+  return a;
+}
+
+function audioBtn(card, msg, i, kind, label) {
+  const b = el('button', null, label);
+  b.onclick = async () => {
+    const exist = card.querySelector('audio[data-kind="' + kind + '"]');
+    if (exist) { try { exist.play(); } catch (e) {} return; }
+    b.disabled = true; b.textContent = '불러오는 중…';
+    try {
+      const res = await srv('adminGetAudio', TOKEN, i.id, kind);
+      const a = document.createElement('audio');
+      a.controls = true;
+      a.dataset.kind = kind;
+      a.src = 'data:' + res.mime + ';base64,' + res.b64;
+      card.insertBefore(a, msg);
+      try { a.play(); } catch (e2) {}
+      msg.className = 'msg'; msg.textContent = '재생: ' + res.name;
+    } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message || String(e); }
+    b.disabled = false; b.textContent = label;
+  };
+  return b;
+}
+
+/* 클립 없는 항목(내부검수·출판사 피드백): 완성본 파일에서 해당 시간으로 이동해 듣기 */
+function parseTc(t) {
+  const m = String(t || '').trim().match(/^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (!m) return null;
+  return m[3] !== undefined
+    ? (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3])
+    : (+m[1]) * 60 + (+m[2]);
+}
+const qaFilesCache = {};
+async function qaFilesOf(book) {
+  if (qaFilesCache[book]) return qaFilesCache[book];
+  const p = await srv('listBookAudio', TOKEN, book, 'qa');
+  const files = (p && p.mode === 'folder') ? (p.files || []) :
+                (p && p.mode === 'file') ? [{ id: p.id, name: p.name }] : [];
+  return (qaFilesCache[book] = files);
+}
+function matchAudioFile(files, fname) {
+  const f = String(fname || '').trim().toLowerCase();
+  if (!f || !files.length) return null;
+  const base = f.replace(/\.[a-z0-9]+$/, '');
+  return files.find(x => x.name.toLowerCase() === f)
+      || files.find(x => base && x.name.toLowerCase().indexOf(base) >= 0)
+      || files.find(x => { const nb = x.name.toLowerCase().replace(/\.[a-z0-9]+$/, ''); return nb && f.indexOf(nb) >= 0; })
+      || null;
+}
+function playSeekInto(w, fid, sec) {
+  const holder = inlineAudio(fid);
+  const au = holder.querySelector('audio');
+  if (au && sec !== null) {
+    au.addEventListener('loadedmetadata', () => { try { au.currentTime = sec; } catch (e) {} }, { once: true });
+    w.appendChild(el('div', 'meta', '재생하면 기록된 시간 지점부터 시작합니다. (파일이 크면 준비에 몇 초 걸립니다)'));
+  }
+  w.appendChild(holder);
+}
+function finalBtn(card, msg, i, fr) {
+  const label = '▶ 완성본에서 듣기' + (i.time ? ' (' + i.time + ')' : '');
+  const b = el('button', null, label);
+  b.onclick = async () => {
+    const ex = card.querySelector('.finwrap');
+    if (ex) { ex.remove(); b.textContent = label; return; }
+    const w = el('div', 'finwrap');
+    const sec = parseTc(i.time);
+    if (i.time || i.file) w.appendChild(el('div', 'tcbig', (i.time ? '위치 ' + i.time : '') + (i.file ? (i.time ? ' · ' : '') + i.file : '')));
+    card.insertBefore(w, msg);
+    b.textContent = '완성본 닫기';
+    if (fr.id) { playSeekInto(w, fr.id, sec); return; }
+    /* v2.3 — 완성본이 폴더(챕터 파일들)인 경우: 기록된 파일명으로 자동 매칭해 그 파일을 해당 위치에서 재생 */
+    const ld = el('div', 'meta', '완성본 파일 찾는 중…');
+    w.appendChild(ld);
+    try {
+      const files = await qaFilesOf(i.book);
+      ld.remove();
+      if (!files.length) {
+        w.appendChild(openLink(fr.url, '완성본 폴더 열기'));
+        w.appendChild(el('div', 'meta', '05 폴더에 오디오 파일이 없습니다 — 폴더를 확인해 주세요.'));
+        return;
+      }
+      const hit = matchAudioFile(files, i.file) || (files.length === 1 ? files[0] : null);
+      if (hit) {
+        if (!i.file) w.appendChild(el('div', 'meta', '파일: ' + hit.name));
+        playSeekInto(w, hit.id, sec);
+      } else {
+        w.appendChild(el('div', 'meta', '기록된 파일명과 일치하는 파일을 찾지 못했습니다 — 아래에서 선택해 주세요.'));
+        files.forEach(f => {
+          const fb = el('button', 'small', '▶ ' + f.name);
+          fb.style.cssText = 'display:block;margin:5px 0 0;max-width:100%;overflow:hidden;text-overflow:ellipsis;';
+          fb.onclick = () => {
+            w.querySelectorAll('.aud2').forEach(x => x.remove());
+            const hw = el('div', 'aud2');
+            w.appendChild(hw);
+            playSeekInto(hw, f.id, sec);
+          };
+          w.appendChild(fb);
+        });
+      }
+    } catch (e) { ld.textContent = '목록을 불러오지 못했습니다: ' + (e.message || e); }
+  };
+  return b;
+}
+
+async function setVerdict(i, v, card, msg) {
+  const ta = card.querySelector('textarea.memoTa');
+  const memo = ta ? ta.value.trim() : '';
+  msg.className = 'msg'; msg.textContent = '"' + v + '" 저장 중…';
+  try {
+    const res = await srv('adminSetVerdict', TOKEN, i.id, v, memo);
+    i.verdict = res.verdict;
+    if (res.recstat) i.recstat = res.recstat;
+    if (res.memoSaved) setLocalAdminMemo(i, memo);
+    FLASH[i.id] = '판정 저장: ' + v
+      + (res.memoSaved ? ' · 메모 전달됨' : '')
+      + (v === '홈 재녹음' ? ' — 성우 페이지에 즉시 노출됩니다 (⑤ 알림 문구로 카톡 발송)' : '')
+      + (v === '엔지니어 수정' ? ' — 담당 엔지니어 [작업 대기]에 뜨고 메일이 발송됩니다' : '');
+    renderBadges(); renderQc();
+  } catch (e) { msg.className = 'msg bad'; msg.textContent = '실패: ' + (e.message || e); }
+}
+
+/* ══════════════════ 파트너 ══════════════════ */
+function noticeText(kind, p) {
+  const L = [];
+  L.push('안녕하세요, SP미디어텍입니다.');
+  if (kind === 'actor') L.push(p.name + ' 성우님의 전용 페이지를 안내드립니다.');
+  else if (kind === 'eng') L.push(p.name + ' 님의 작업(오류 기록·수정 반영) 페이지를 안내드립니다.');
+  else L.push((p.pubName ? p.pubName + ' ' : '') + (p.contact || '담당자') + ' 님의 오디오북 파트너 페이지를 안내드립니다.');
+  L.push('');
+  L.push('접속 방법');
+  L.push('1) [www.spmediatek.com](https://www.spmediatek.com) → 상단 [로그인] 메뉴');
+  if (p.acct && p.acct.id) {
+    L.push('   아이디: ' + p.acct.id);
+    L.push('   비밀번호: ' + p.acct.pw);
+  }
+  if (p.link) {
+    L.push('2) 또는 아래 개인 링크로 바로 접속');
+    L.push('   ' + p.link);
+  }
+  L.push('');
+  if (kind === 'actor') L.push('수정 녹음 요청 확인·업로드와 캐스팅 샘플 제출을 이 페이지에서 하실 수 있습니다.');
+  else if (kind === 'eng') L.push('오류 기록, 레퍼런스 클립 첨부, 수정 반영 처리를 이 페이지에서 하실 수 있습니다.');
+  else L.push('제작 진행 현황 확인과 초안 검수(수정 사항 제출)를 이 페이지에서 하실 수 있습니다.');
+  L.push('아이디·비밀번호와 링크는 본인 확인용이니 공유하지 말아 주세요.');
+  L.push('');
+  L.push('문의: SP미디어텍 010-4930-8803');
+  return L.join('\n');
+}
+
+function partnerRow(kind, p) {
+  const w = el('div', 'prow');
+  const r1 = el('div', 'r1');
+  r1.appendChild(el('span', 'nm', kind === 'pub' ? (p.pubName + ' · ' + (p.contact || '담당자 미입력')) : p.name));
+  if (p.acct && p.acct.status === '정지') r1.appendChild(el('span', 'chip redln', '계정 정지'));
+  if (kind === 'eng' && p.scope === '전체도서') r1.appendChild(el('span', 'chip gray', '검수자 · 전체도서'));
+  if (!p.link) r1.appendChild(el('span', 'chip redln', '토큰 없음 — 시트 메뉴 ' + (kind === 'actor' ? '③' : kind === 'eng' ? '⑥' : '⑩') + ' 실행'));
+  w.appendChild(r1);
+
+  const metaBits = [];
+  if (kind === 'actor' && p.contact) metaBits.push('연락 ' + p.contact);
+  if (p.email) metaBits.push(p.email);
+  if (kind === 'eng' && p.note) metaBits.push(p.note);
+  if (kind === 'pub' && p.note) metaBits.push(p.note);
+  const bl = p.books || [];
+  if (bl.length) metaBits.push('담당 ' + bl.length + '권: ' + bl.slice(0, 4).join(', ') + (bl.length > 4 ? ' 외 ' + (bl.length - 4) : ''));
+  if (metaBits.length) w.appendChild(el('div', 'pm', metaBits.join('  ·  ')));
+
+  const pb = el('div', 'pb');
+  const mark = el('span', 'savemark', '');
+  if (p.link) {
+    const a = document.createElement('a');
+    a.className = 'linkbtn'; a.href = p.link; a.target = '_blank';
+    a.textContent = kind === 'pub' ? '출판사 페이지 열기' : '개인 페이지 열기';
+    pb.appendChild(a);
+    const cp = el('button', 'small', '링크 복사');
+    cp.onclick = () => copyText(p.link, mark);
+    pb.appendChild(cp);
+  }
+  if (p.acct && p.acct.id) {
+    const ab = el('button', 'small', '계정 보기');
+    pb.appendChild(ab);
+    var acctLine = null;
+    ab.onclick = () => {
+      if (acctLine) { acctLine.remove(); acctLine = null; ab.textContent = '계정 보기'; return; }
+      acctLine = el('div', 'acctline');
+      acctLine.appendChild(el('span', null, '아이디 ' + p.acct.id));
+      acctLine.appendChild(el('span', null, '비밀번호 ' + p.acct.pw));
+      const c2 = el('button', 'small', '계정 복사');
+      c2.onclick = () => copyText('아이디: ' + p.acct.id + '\n비밀번호: ' + p.acct.pw, mark);
+      acctLine.appendChild(c2);
+      w.appendChild(acctLine);
+      ab.textContent = '계정 닫기';
+    };
+  }
+  if (p.email) {
+    const m = document.createElement('a');
+    m.className = 'linkbtn';
+    m.href = 'mailto:' + p.email + '?subject=' + encodeURIComponent('[SP미디어텍] 안내드립니다');
+    m.textContent = '메일 쓰기';
+    pb.appendChild(m);
+  }
+  const nb = el('button', 'small', '안내문 복사 (카톡용)');
+  nb.onclick = () => copyText(noticeText(kind, p), mark);
+  pb.appendChild(nb);
+  pb.appendChild(mark);
+  w.appendChild(pb);
+  return w;
+}
+
+/* v2.5 — 파트너 탭: 그룹 필터 + 이름 검색 */
+let partnerGroup = 'all', partnerQ = '';
+
+function renderPartners() {
+  const box = document.getElementById('tab-partners');
+  box.innerHTML = '';
+  const P = DATA.partners || { actors: [], engineers: [], pubs: [] };
+  box.appendChild(el('h2', 'sec', '파트너'));
+  box.appendChild(el('p', 'greet', '[페이지 열기]는 그 사람이 보는 화면을 그대로 새 탭으로 엽니다. [안내문 복사]를 눌러 카톡에 붙여넣으면 접속 안내가 끝납니다.'));
+
+  const GROUPS = [
+    ['all', '전체'],
+    ['actor', '성우'],
+    ['eng', '엔지니어 · 검수자'],
+    ['pub', '출판사']
+  ];
+  const sizeOf = k => k === 'actor' ? (P.actors || []).length
+    : k === 'eng' ? (P.engineers || []).length
+    : k === 'pub' ? (P.pubs || []).length
+    : (P.actors || []).length + (P.engineers || []).length + (P.pubs || []).length;
+
+  const tabs = el('div', 'gtabs');
+  GROUPS.forEach(g => {
+    const t = el('button', 'gtab' + (partnerGroup === g[0] ? ' on' : ''), g[1]);
+    t.appendChild(el('span', 'c', String(sizeOf(g[0]))));
+    t.onclick = () => { partnerGroup = g[0]; renderPartners(); };
+    tabs.appendChild(t);
+  });
+  box.appendChild(tabs);
+
+  const sbar = el('div', 'fbar');
+  const q = document.createElement('input');
+  q.type = 'search'; q.placeholder = '이름 · 출판사 · 담당 도서로 찾기';
+  q.value = partnerQ; q.style.width = '260px';
+  let tmr = null;
+  q.oninput = () => {
+    clearTimeout(tmr);
+    tmr = setTimeout(() => { partnerQ = q.value.trim(); renderPartners(); }, 250);
+  };
+  sbar.appendChild(q);
+  if (partnerQ) {
+    const clr = el('button', 'f', '검색 지우기');
+    clr.onclick = () => { partnerQ = ''; renderPartners(); };
+    sbar.appendChild(clr);
+  }
+  box.appendChild(sbar);
+
+  const hit = p => {
+    if (!partnerQ) return true;
+    const q2 = partnerQ.toLowerCase();
+    return [p.name, p.pubName, p.contact, (p.books || []).join(' '), (p.acct || {}).id]
+      .filter(Boolean).join(' ').toLowerCase().indexOf(q2) >= 0;
+  };
+
+  let total = 0;
+  const sec = (title, arr, kind, emptyMsg) => {
+    if (partnerGroup !== 'all' && partnerGroup !== kind) return;
+    const list = (arr || []).filter(hit);
+    total += list.length;
+    const h = el('h2', 'sec', title);
+    h.appendChild(el('span', 'cnt', list.length + '명'));
+    box.appendChild(h);
+    if (!list.length) box.appendChild(el('div', 'empty', partnerQ ? '검색 결과가 없습니다.' : emptyMsg));
+    list.forEach(p => box.appendChild(partnerRow(kind, p)));
+  };
+  sec('성우', P.actors, 'actor', '성우 탭에 등록된 성우가 없습니다.');
+  sec('엔지니어 · 검수자', P.engineers, 'eng', '엔지니어 탭에 등록된 인원이 없습니다.');
+  sec('출판사', P.pubs, 'pub', '출판사 탭에 등록된 담당자가 없습니다. [⑭-2 출판사 담당자 자동 등록]을 실행해 보세요.');
+  if (!total && partnerQ) box.appendChild(el('div', 'empty', '『' + partnerQ + '』와 일치하는 파트너가 없습니다.'));
+}
+
+/* ══════════════════ 녹음 기록 (페이 정산) ══════════════════ */
+function parseDur(str) {
+  const t = String(str || '').trim();
+  let m = t.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (m) return (+m[1]) * 60 + (+m[2]) + (m[3] ? (+m[3]) / 60 : 0);
+  m = t.match(/^(?:(\d+(?:\.\d+)?)\s*시간)?\s*(?:(\d+)\s*분)?$/);
+  if (m && (m[1] || m[2])) return (m[1] ? parseFloat(m[1]) * 60 : 0) + (m[2] ? +m[2] : 0);
+  return null;
+}
+function fmtDur(min) {
+  const h = Math.floor(min / 60), mm = Math.round(min % 60);
+  return h + ':' + String(mm).padStart(2, '0');
+}
+
+function renderRec() {
+  const box = document.getElementById('tab-rec');
+  box.innerHTML = '';
+  const logs = DATA.recLog || [];
+  const h = el('h2', 'sec', '녹음 기록 (페이 정산)');
+  h.appendChild(el('span', 'cnt', logs.length + '건'));
+  box.appendChild(h);
+  box.appendChild(el('p', 'greet', '성우별 녹음 분량을 기록합니다. 스튜디오·홈레코딩은 완성 러닝타임으로, 실시간 계약은 실제 녹음 시간으로 적어 주세요. 시트 [녹음기록] 탭에 저장됩니다.'));
+
+  const fc = el('div', 'card');
+  const g = el('div', 'addgrid');
+  const mk = (lab, node) => { const w = el('div'); w.appendChild(el('label', null, lab)); w.appendChild(node); g.appendChild(w); return node; };
+  const fDate = document.createElement('input'); fDate.type = 'date';
+  const dn = new Date();
+  fDate.value = dn.getFullYear() + '-' + String(dn.getMonth() + 1).padStart(2, '0') + '-' + String(dn.getDate()).padStart(2, '0');
+  mk('날짜', fDate);
+  const fB = document.createElement('select');
+  DATA.books.forEach(b => { const o = document.createElement('option'); o.value = b.title; o.textContent = b.title; fB.appendChild(o); });
+  mk('도서', fB);
+  const fA = document.createElement('select');
+  DATA.actors.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; fA.appendChild(o); });
+  mk('성우', fA);
+  const fM = document.createElement('select');
+  (DATA.recMethods || []).forEach(m2 => { const o = document.createElement('option'); o.value = m2; o.textContent = m2; fM.appendChild(o); });
+  mk('방식', fM);
+  const fAmt = document.createElement('input'); fAmt.type = 'text'; fAmt.placeholder = '예) 4:21 또는 3시간 30분';
+  mk('수치 (러닝타임·시간)', fAmt);
+  const fN = document.createElement('input'); fN.type = 'text'; fN.placeholder = '비고 (선택)';
+  mk('비고', fN);
+  fc.appendChild(g);
+  const btns = el('div', 'btns');
+  const sub = el('button', 'primary', '기록 추가');
+  btns.appendChild(sub); fc.appendChild(btns);
+  const msg = el('div', 'msg'); fc.appendChild(msg);
+  sub.onclick = async () => {
+    if (!fAmt.value.trim()) { msg.className = 'msg bad'; msg.textContent = '수치를 입력해 주세요.'; return; }
+    sub.disabled = true; sub.textContent = '저장 중…';
+    try {
+      const res = await srv('adminAddRecLog', TOKEN, { date: fDate.value, book: fB.value, actor: fA.value, method: fM.value, amount: fAmt.value.trim(), note: fN.value.trim() });
+      (DATA.recLog = DATA.recLog || []).unshift({ id: res.id, date: res.date, book: fB.value, actor: fA.value, method: fM.value, amount: fAmt.value.trim(), note: fN.value.trim() });
+      renderRec();
+      return;
+    } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message || String(e); }
+    sub.disabled = false; sub.textContent = '기록 추가';
+  };
+  box.appendChild(fc);
+
+  if (!logs.length) { box.appendChild(el('div', 'empty', '아직 녹음 기록이 없습니다. 위에서 첫 기록을 추가하세요.')); return; }
+
+  const byB = {};
+  logs.forEach(r => { (byB[r.book] = byB[r.book] || []).push(r); });
+  Object.keys(byB).forEach(bt => {
+    const c = el('div', 'card');
+    const hd = el('div', 'bhead');
+    hd.appendChild(el('span', 'tt', '『' + bt + '』'));
+    hd.appendChild(el('span', 'sub', byB[bt].length + '건'));
+    c.appendChild(hd);
+
+    const sums = {};
+    byB[bt].forEach(r => {
+      const k = r.actor + '|' + r.method;
+      const mmin = parseDur(r.amount);
+      if (!sums[k]) sums[k] = { actor: r.actor, method: r.method, min: 0, cnt: 0, bad: false };
+      sums[k].cnt++;
+      if (mmin === null) sums[k].bad = true; else sums[k].min += mmin;
+    });
+    const sline = Object.keys(sums).map(k => {
+      const v = sums[k];
+      return v.actor + ' · ' + v.method + ' 합계 ' + (v.min ? fmtDur(v.min) : '—') + (v.bad ? ' (일부 해석 불가)' : '') + ' · ' + v.cnt + '건';
+    }).join('   |   ');
+    c.appendChild(el('div', 'castsum', sline));
+
+    const tw = el('div', 'rtblwrap');
+    const tbl = document.createElement('table'); tbl.className = 'rtbl';
+    const thead = document.createElement('thead');
+    const htr = document.createElement('tr');
+    [['날짜', 64], ['성우', 70], ['방식', 0], ['수치', 90], ['비고', 0], ['', 52]].forEach(hh => {
+      const th = document.createElement('th');
+      th.textContent = hh[0];
+      if (hh[1]) th.style.width = hh[1] + 'px';
+      htr.appendChild(th);
+    });
+    thead.appendChild(htr); tbl.appendChild(thead);
+    const tb = document.createElement('tbody');
+    byB[bt].forEach(r => {
+      const tr = document.createElement('tr');
+      const mkc = t => { const td = document.createElement('td'); td.textContent = t || ''; return td; };
+      tr.appendChild(mkc(r.date)); tr.appendChild(mkc(r.actor)); tr.appendChild(mkc(r.method));
+      tr.appendChild(mkc(r.amount)); tr.appendChild(mkc(r.note));
+      const td = document.createElement('td');
+      const db = el('button', 'small', '삭제');
+      db.onclick = async () => {
+        if (!confirm(r.date + ' · ' + r.actor + ' · ' + r.amount + ' 기록을 삭제할까요?')) return;
+        db.disabled = true;
+        try { await srv('adminDelRecLog', TOKEN, r.id); DATA.recLog = DATA.recLog.filter(x => x.id !== r.id); renderRec(); }
+        catch (e) { db.disabled = false; alert('삭제 실패: ' + (e.message || e)); }
+      };
+      td.appendChild(db); tr.appendChild(td);
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb); tw.appendChild(tbl); c.appendChild(tw);
+    box.appendChild(c);
+  });
+}
+
+/* ══════════════════ v2.3: 원고 패널 (좌 PDF · 우 작업) ══════════════════ */
+const msCache = {};
+const MS = { open: false, book: '' };
+document.getElementById('msClose').onclick = () => closeMs();
+function closeMs() {
+  MS.open = false; MS.book = '';
+  document.body.classList.remove('msopen');
+  document.getElementById('msFrame').src = 'about:blank';
+  document.querySelectorAll('button.small').forEach(x => { if (x.textContent === '📄 원고 닫기') x.textContent = '📄 원고'; });
+}
+async function toggleMs(book, btn) {
+  if (MS.open && MS.book === book) { closeMs(); return; }
+  const orig = '📄 원고';
+  if (btn) { btn.disabled = true; btn.textContent = '원고 여는 중…'; }
+  try {
+    const res = msCache[book] || (msCache[book] = await srv('getScriptPdf', TOKEN, book));
+    if (!res.found) {
+      delete msCache[book];
+      if (btn) { btn.textContent = '원고 PDF 없음 (01 폴더)'; setTimeout(() => { btn.textContent = orig; }, 2200); btn.disabled = false; }
+      return;
+    }
+    document.getElementById('msName').textContent = '『' + book + '』 ' + res.name + (res.locked ? ' · 다운로드 제한됨' : '');
+    document.getElementById('msFrame').src = 'https://drive.google.com/file/d/' + res.id + '/preview';
+    if (MS.open) closeMs();
+    MS.open = true; MS.book = book;
+    document.body.classList.add('msopen');
+    if (btn) btn.textContent = '📄 원고 닫기';
+  } catch (e) {
+    if (btn) { btn.textContent = '실패: ' + (e.message || e); setTimeout(() => { btn.textContent = orig; }, 2600); }
+  }
+  if (btn) btn.disabled = false;
+}
+
+/* ══════════════════ v2.3: 출결 (급여 기간 26일~25일) ══════════════════ */
+let attAnchor = new Date();
+function attPeriod(anchor) {
+  const y = anchor.getFullYear(), m = anchor.getMonth(), d = anchor.getDate();
+  let ey = y, em = m;
+  if (d > 25) { em = m + 1; if (em > 11) { em = 0; ey++; } }
+  const end = new Date(ey, em, 25);
+  const start = new Date(ey, em - 1, 26);
+  return { start: start, end: end };
+}
+const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const md = d => (d.getMonth() + 1) + '/' + d.getDate();
+const WD = ['일', '월', '화', '수', '목', '금', '토'];
+function fmtH(min) { return (Math.round(min / 6) / 10) + 'h'; }
+
+function renderAtt() {
+  const box = document.getElementById('tab-att');
+  box.innerHTML = '';
+  const A = DATA.attendance || { rows: [], hourly: {} };
+  const p = attPeriod(attAnchor);
+  box.appendChild(el('h2', 'sec', '출결 — 내부인력 근무 기록'));
+
+  const bar = el('div', 'fbar');
+  const prev = el('button', 'f', '◀ 이전 기간');
+  prev.onclick = () => { attAnchor = new Date(p.start.getFullYear(), p.start.getMonth(), 25); renderAtt(); };
+  const lab = el('button', 'f on', md(p.start) + ' ~ ' + md(p.end) + ' · 급여 기간');
+  lab.disabled = true;
+  const next = el('button', 'f', '다음 기간 ▶');
+  next.onclick = () => { attAnchor = new Date(p.end.getTime() + 86400000 * 2); renderAtt(); };
+  bar.appendChild(prev); bar.appendChild(lab); bar.appendChild(next);
+  box.appendChild(bar);
+  box.appendChild(el('p', 'greet', '엔지니어·검수자가 각자 개인 페이지 [출결 기록]에서 입력한 내용이 여기 모입니다. 급여 기간: 전월 26일 ~ 당월 25일. 엔지니어 탭 H열에 시급을 입력하면 예상 금액이 함께 표시됩니다.'));
+
+  const s0 = ymd(p.start), e0 = ymd(p.end);
+  const rows = (A.rows || []).filter(r => r.date >= s0 && r.date <= e0);
+  if (!rows.length) { box.appendChild(el('div', 'empty', '이 기간의 출결 기록이 아직 없습니다.')); return; }
+
+  const byName = {};
+  rows.forEach(r => { (byName[r.name] = byName[r.name] || []).push(r); });
+  const tmin = rows.reduce((a, r) => a + r.min, 0);
+  const st = el('div', 'stats');
+  const s1 = el('div', 'stat'); s1.appendChild(el('b', null, String(Object.keys(byName).length))); s1.appendChild(el('span', null, '근무 인원'));
+  const s2 = el('div', 'stat'); s2.appendChild(el('b', null, fmtH(tmin))); s2.appendChild(el('span', null, '합계 근무'));
+  st.appendChild(s1); st.appendChild(s2);
+  box.appendChild(st);
+
+  const days = [];
+  for (let d = new Date(p.start); d <= p.end; d = new Date(d.getTime() + 86400000)) days.push(new Date(d));
+
+  Object.keys(byName).sort((a, b) => a.localeCompare(b, 'ko')).forEach(nm => {
+    const list = byName[nm];
+    const min = list.reduce((a, r) => a + r.min, 0);
+    const rate = (A.hourly || {})[nm];
+    const c = el('div', 'card');
+    const hd = el('div', 'bhead');
+    hd.appendChild(el('span', 'tt', nm));
+    if (list[0].kind) hd.appendChild(el('span', 'chip gray', list[0].kind));
+    hd.appendChild(el('span', 'pill p-done', '합계 ' + fmtH(min) + ' · ' + list.length + '일'));
+    if (rate) hd.appendChild(el('span', 'pill p-up', '예상 ≈ ' + Math.round(min / 60 * rate).toLocaleString('ko-KR') + '원 (시급 ' + rate.toLocaleString('ko-KR') + ')'));
+    c.appendChild(hd);
+
+    const byDate = {};
+    list.forEach(r => byDate[r.date] = r);
+    const bars = el('div', 'attbars');
+    bars.style.gridTemplateColumns = 'repeat(' + days.length + ',1fr)';
+    const lbls = el('div', 'attbars');
+    lbls.style.gridTemplateColumns = 'repeat(' + days.length + ',1fr)';
+    lbls.style.marginTop = '0';
+    days.forEach(d => {
+      const r = byDate[ymd(d)];
+      const bd = el('div', 'attbar' + (r ? ' on' : ''));
+      bd.style.height = (r ? Math.min(64, 8 + r.min / 480 * 52) : 5) + 'px';
+      bd.title = md(d) + '(' + WD[d.getDay()] + ')' + (r ? ' · ' + r.start + '~' + r.end + ' · ' + fmtH(r.min) : ' · 기록 없음');
+      bars.appendChild(bd);
+      const lb = el('div', 'attlbl', (d.getDate() === 1 || d.getDate() === 26 || d.getDay() === 1) ? String(d.getDate()) : '');
+      if (d.getDay() === 0) lb.style.color = '#d8574a';
+      lbls.appendChild(lb);
+    });
+    c.appendChild(bars); c.appendChild(lbls);
+
+    const tw = el('div', 'rtblwrap');
+    const tbl = document.createElement('table'); tbl.className = 'rtbl';
+    const thead = document.createElement('thead'); const htr = document.createElement('tr');
+    ['날짜', '요일', '시작~종료', '휴게', '근무', '메모'].forEach(t => { const th = document.createElement('th'); th.textContent = t; htr.appendChild(th); });
+    thead.appendChild(htr); tbl.appendChild(thead);
+    const tb = document.createElement('tbody');
+    list.slice().sort((a, b2) => a.date.localeCompare(b2.date)).forEach(r => {
+      const tr = document.createElement('tr');
+      const dt = new Date(r.date + 'T00:00:00');
+      [md(dt), WD[dt.getDay()], r.start + ' ~ ' + r.end, r.brk ? r.brk + '분' : '—', fmtH(r.min), r.memo || ''].forEach(t => {
+        const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb); tw.appendChild(tbl); c.appendChild(tw);
+    box.appendChild(c);
+  });
+
+  renderWorkSection(box); // v2.4 — 외주 작업 집계
+}
+
+/* v2.4 — 프리랜서가 자기 화면에서 등록한 외주 작업 조건을 한눈에 모아 봅니다 */
+function renderWorkSection(box) {
+  const W = DATA.work || [];
+  box.appendChild(el('h2', 'sec', '외주 작업 — 담당자가 등록한 도서별 작업 조건'));
+  if (!W.length) {
+    box.appendChild(el('div', 'empty', '아직 등록된 작업이 없습니다. 엔지니어·검수자 페이지 [출결 및 작업 현황]에서 등록합니다.'));
+    return;
+  }
+  const won2 = n => (n || 0).toLocaleString('ko-KR');
+  const byName = {};
+  W.forEach(r => { (byName[r.name] = byName[r.name] || []).push(r); });
+
+  const tot = el('div', 'stats');
+  [['등록 도서', W.length + '건', ''],
+   ['진행 중', W.filter(r => r.status !== '완료').length + '건', ''],
+   ['단가 합계', won2(W.reduce((a, r) => a + (r.fee || 0), 0)) + '원', '']].forEach(it => {
+    const sx = el('div', 'stat');
+    sx.appendChild(el('b', null, it[1]));
+    sx.appendChild(el('span', null, it[0]));
+    tot.appendChild(sx);
+  });
+  box.appendChild(tot);
+
+  Object.keys(byName).sort((a, b) => a.localeCompare(b, 'ko')).forEach(nm => {
+    const list = byName[nm];
+    const c = el('div', 'card');
+    const hd = el('div', 'bhead');
+    hd.appendChild(el('span', 'tt', nm));
+    if (list[0].kind) hd.appendChild(el('span', 'chip gray', list[0].kind));
+    hd.appendChild(el('span', 'pill p-done', list.length + '권 · ' + won2(list.reduce((a, r) => a + (r.fee || 0), 0)) + '원'));
+    c.appendChild(hd);
+
+    const tw = el('div', 'rtblwrap');
+    const tbl = document.createElement('table'); tbl.className = 'rtbl';
+    const thead = document.createElement('thead'); const htr = document.createElement('tr');
+    ['출판사', '도서명', '러닝타임', '단가', '상태', '메모'].forEach(t => {
+      const th = document.createElement('th'); th.textContent = t; htr.appendChild(th);
+    });
+    thead.appendChild(htr); tbl.appendChild(thead);
+    const tb = document.createElement('tbody');
+    list.slice().sort((a, b) => a.book.localeCompare(b.book, 'ko')).forEach(r => {
+      const tr = document.createElement('tr');
+      [r.pub || '—', r.book, r.rt || '—',
+       r.fee ? won2(r.fee) + '원' : '—', r.status || '—', r.memo || ''].forEach(t => {
+        const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb); tw.appendChild(tbl); c.appendChild(tw);
+    box.appendChild(c);
+  });
+}
+
+/* ── 시작 ── */
+/* v2.5 — 관리자 잠금. 설정!B11에 비밀번호가 있으면 먼저 확인 화면을 띄웁니다.
+   같은 탭에서는 한 번만 물어보고, 탭을 닫으면 다시 물어봅니다(공용 PC 대비). */
+function boot() { prepData(); go('home'); }
+
+function lockScreen() {
+  /* v2.6 — 흰 화면 버그 수정.
+     예전에는 body를 비우고 성공 시 location.reload()를 했는데, Apps Script 웹앱은
+     샌드박스 iframe 안에서 실행되어 reload가 빈 화면으로 끝나는 경우가 있었습니다.
+     이제 앱 화면 위에 잠금 "덮개"만 씌우고, 성공하면 덮개를 걷고 그 자리에서 바로 부팅합니다. */
+  const wrap = el('div');
+  wrap.id = 'lockOverlay';
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#f4f5f7';
+  const box = el('div');
+  box.style.cssText = 'background:#fff;border:1px solid #e3e6ea;border-radius:16px;padding:32px 28px;max-width:380px;width:100%;box-shadow:0 2px 14px rgba(0,0,0,.06)';
+  const h = el('div', null, '관리자 대시보드');
+  h.style.cssText = 'font-size:18px;font-weight:800;color:#16283c;margin-bottom:6px';
+  const p = el('div', null, '대표 전용 화면입니다. 비밀번호를 입력해 주세요.');
+  p.style.cssText = 'font-size:13px;color:#7c8792;line-height:1.6;margin-bottom:18px';
+  const inp = document.createElement('input');
+  inp.type = 'password'; inp.autocomplete = 'current-password'; inp.placeholder = '비밀번호';
+  inp.style.cssText = 'width:100%;padding:13px;font-size:15px;border:1px solid #d7dbe0;border-radius:10px;font-family:inherit;outline:none';
+  inp.onfocus = () => { inp.style.borderColor = '#1f3b57'; };
+  const btn = el('button', null, '들어가기');
+  btn.style.cssText = 'width:100%;margin-top:12px;padding:13px;background:#1f3b57;color:#fff;border:0;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit';
+  const msg = el('div');
+  msg.style.cssText = 'margin-top:11px;font-size:13px;text-align:center;line-height:1.6;min-height:18px';
+  const tryIt = async () => {
+    const pin = inp.value.trim();
+    if (!pin) { msg.style.color = '#b23a2f'; msg.textContent = '비밀번호를 입력해 주세요.'; return; }
+    btn.disabled = true; btn.textContent = '확인 중…';
+    msg.style.color = '#7c8792'; msg.textContent = '';
+    try {
+      const full = await srv('adminUnlock', TOKEN, pin);
+      try { sessionStorage.setItem('sp_admin_ok', pin); } catch (e) {}
+      DATA = full;
+      wrap.remove();               /* 덮개를 걷고 */
+      document.body.style.overflow = '';
+      boot();                      /* 그 자리에서 바로 시작 — 새로고침 불필요 */
+    } catch (e) {
+      msg.style.color = '#b23a2f'; msg.textContent = (e && e.message) || '확인에 실패했습니다.';
+      btn.disabled = false; btn.textContent = '들어가기';
+      inp.value = ''; inp.focus();
+    }
+  };
+  btn.onclick = tryIt;
+  inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') tryIt(); });
+  [h, p, inp, btn, msg].forEach(x => box.appendChild(x));
+  wrap.appendChild(box);
+  document.body.style.overflow = 'hidden';
+  document.body.appendChild(wrap);
+  inp.focus();
+}
+
+async function start() {
+  if (!DATA.gate) { boot(); return; }
+  let saved = '';
+  try { saved = sessionStorage.getItem('sp_admin_ok') || ''; } catch (e) {}
+  if (saved) {
+    try {
+      DATA = await srv('adminUnlock', TOKEN, saved);
+      boot();
+      return;
+    } catch (e) {
+      try { sessionStorage.removeItem('sp_admin_ok'); } catch (e2) {}
+    }
+  }
+  lockScreen();
+}
+start();
+</script>
+</body>
+</html>
