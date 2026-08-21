@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 .venv/
 .env
+
+# 검수 리포트 출력물
+out/

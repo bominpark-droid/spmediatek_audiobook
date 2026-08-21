@@ -1,0 +1,10 @@
+# 2단계(강제 정렬) 전용 의존성.
+#
+# 메인 requirements.txt 와 분리해 둔 이유: stable-ts 는 torch 를 끌고 와서
+# 설치 용량이 수 GB다. 크롤러 CI 에 얹으면 매일 빌드가 무거워진다.
+# 1단계(compare)는 표준 라이브러리만 쓰므로 이 파일이 필요 없다.
+#
+#   pip install -r qc/requirements-align.txt
+stable-ts>=2.17
+# CPU에서도 2~4배 빠르다. --no-faster 로 끄면 원본 whisper 백엔드를 쓴다.
+faster-whisper>=1.0
